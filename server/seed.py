@@ -5,12 +5,18 @@ from random import randint, choice as rc
 from faker import Faker
 from app import app
 from models import db, Customer, Product, Order, order_product_table
+from sqlalchemy import text
 
 if __name__ == '__main__':
     fake = Faker()
 
     with app.app_context():
         print("Starting seed...")
+        
+        # Clear the `order_products` table using raw SQL
+        db.session.execute(text('DELETE FROM order_products'))
+        db.session.commit()
+
         Customer.query.delete()
         Product.query.delete()
         Order.query.delete()
@@ -45,12 +51,12 @@ if __name__ == '__main__':
         print("Creating Products...")
 
         # Create products
-        p1 = Product(product_name="1 Gallon of Whole Milk", price=3.99)
-        p2 = Product(product_name="Bread Loaf", price=1.59)
-        p3 = Product(product_name="Orange Juice", price=3.00)
-        p4 = Product(product_name="Tissue", price=10.99)
-        p5 = Product(product_name="Toothpaste", price=1.50)
-        p6 = Product(product_name="Mouthwash", price=2.99)
+        p1 = Product(product_name="Whole Milk", price=3.99, product_img="https://i5.walmartimages.com/seo/Great-Value-Milk-Whole-Vitamin-D-Gallon-Plastic-Jug_6a7b09b4-f51d-4bea-a01c-85767f1b481a.86876244397d83ce6cdedb030abe6e4a.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF")
+        p2 = Product(product_name="Bread Loaf", price=1.59, product_img="https://growingdawn.com/wp-content/uploads/2023/08/homemadevsstorebought-5.jpg")
+        p3 = Product(product_name="Orange Juice", price=3.00, product_img="https://www.kroger.com/product/images/large/front/0001111091102")
+        p4 = Product(product_name="Tissue", price=10.99, product_img="https://www.chefstore.com/images/usf_items/3950614/3950614.jpg")
+        p5 = Product(product_name="Toothpaste", price=1.50, product_img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTR7M0icUqqbf0aK-zFYD_PnGBxggq9p0zJSw&s")
+        p6 = Product(product_name="Mouthwash", price=2.99, product_img="https://i5.peapod.com/c/Y3/Y3G1A.png")
         db.session.add_all([p1, p2, p3, p4, p5, p6])
         db.session.commit()
 
@@ -59,49 +65,26 @@ if __name__ == '__main__':
         # Helper function to calculate order totals
         def order_totals(product_array):
             order_total = 0
-            for product, quantity in product_array:
-                order_total += product.price * quantity
+            for product in product_array:
+                order_total += product.price
             return order_total
 
-        # Create orders
+        # Create orders and add products directly to the orders
         o1 = Order(order_date=datetime.datetime(2024, 11, 20),
-                   order_total=order_totals([(p1, 1), (p2, 1)]), customer_id=c1.id)
+        order_total=order_totals([p1, p2]), customer_id=c1.id)
         o2 = Order(order_date=datetime.datetime(2024, 11, 15),
-                   order_total=order_totals([(p1, 2), (p6, 1)]), customer_id=c3.id)
-        
-        # Add products to orders (but not to order_products yet)
+        order_total=order_totals([p1, p6]), customer_id=c3.id)
+
+        # Add products to orders
         o1.products.append(p1)
         o1.products.append(p2)
         o2.products.append(p1)
         o2.products.append(p6)
 
-        # Add orders to session and commit
+        # Add orders to session
         db.session.add(o1)
         db.session.add(o2)
-        db.session.commit()
 
-        # Insert or update the order_products table
-        def insert_or_update_order_product(order_id, product_id, quantity):
-            # Check if the combination of order_id and product_id already exists
-            existing_item = db.session.query(order_product_table).filter_by(order_id=order_id, product_id=product_id).first()
-            if existing_item:
-                # If exists, update the quantity
-                existing_item.quantity += quantity  # Update the quantity by adding the new quantity
-            else:
-                # If doesn't exist, insert a new record
-                db.session.execute(
-                    order_product_table.insert().values(order_id=order_id, product_id=product_id, quantity=quantity)
-                )
-
-        # Insert or update products for order 1
-        insert_or_update_order_product(o1.id, p1.id, 1)
-        insert_or_update_order_product(o1.id, p2.id, 1)
-
-        # Insert or update products for order 2
-        insert_or_update_order_product(o2.id, p1.id, 2)
-        insert_or_update_order_product(o2.id, p6.id, 1)
-
-        # Commit all changes
         db.session.commit()
 
         print("Complete!")

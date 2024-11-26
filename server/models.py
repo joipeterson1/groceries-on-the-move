@@ -5,13 +5,14 @@ from sqlalchemy.orm import validates, relationship
 
 from config import db
 
-order_product_table = Table(
-    'order_products', db.Model.metadata,
-    Column('order_id', Integer, ForeignKey('orders.id'), primary_key=True),
-    Column('product_id', Integer, ForeignKey('products.id'), primary_key=True),
-    Column('quantity', Integer, nullable=False, default=1)
-
+order_product_table = db.Table(
+    'order_products',
+    db.Column('order_id', db.Integer, db.ForeignKey('orders.id'), primary_key=True),
+    db.Column('product_id', db.Integer, db.ForeignKey('products.id'), primary_key=True),
+    # Enforce uniqueness on the combination of order_id and product_id
+    db.UniqueConstraint('order_id', 'product_id', name='uix_order_product')
 )
+
 
 class Customer(db.Model, SerializerMixin):
     __tablename__ = 'customers'
@@ -20,7 +21,7 @@ class Customer(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.String)
+    phone_number = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     address = db.Column(db.String, nullable=False)
 
@@ -86,8 +87,8 @@ class Order(db.Model, SerializerMixin):
     serialize_rules = ('-customer.orders', '-product.orders',)
 
     id = db.Column(db.Integer, primary_key=True)
-    order_date = db.Column(db.DateTime)
-    order_total = db.Column(db.Float)
+    order_date = db.Column(db.DateTime, nullable=False)
+    order_total = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
 
     customer = db.relationship('Customer', back_populates="orders")
@@ -97,10 +98,5 @@ class Order(db.Model, SerializerMixin):
         back_populates='orders'
     )
 
-    # # Add an additional field for quantity through the association table
-    # order_items = db.relationship(
-    #     secondary=order_product_table,
-    #     back_populates='order'
-    # )
 
 
