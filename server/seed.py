@@ -6,6 +6,7 @@ from faker import Faker
 from app import app
 from models import db, Customer, Product, Order, order_product_table
 from sqlalchemy import text
+from werkzeug.security import generate_password_hash
 
 if __name__ == '__main__':
     fake = Faker()
@@ -25,23 +26,38 @@ if __name__ == '__main__':
         print("Creating Customers...")
 
         # Create customers
+        password_hash = generate_password_hash("mynameisjane")
         c1 = Customer(
             name="Jane Doe", 
+            username="janedoe1234",
+            _password_hash="mynameisjane",
             phone_number="8504463222",
             email="janedoe@gmail.com",
             address="112 Love Dr Atlanta, GA 33234")
+        
+        password_hash = generate_password_hash("austin100")
         c2 = Customer(
-            name="Austin Powers", 
+            name="Austin Powers",
+            username="austin100",
+            _password_hash="mynameisaustin",
             phone_number="8502232222",
             email="austinnn@gmail.com",
             address="999 Powers Lane Atlanta, GA 33204")
+        
+        password_hash = generate_password_hash("davisa12")
         c3 = Customer(
-            name="Ashton Davis", 
+            name="Ashton Davis",
+            username="davisa12",
+            _password_hash="mynameisashton", 
             phone_number="8501234567",
             email="davisa@gmail.com",
             address="89 Cookie Lane Tallahassee, FL 33234")
+        
+        password_hash = generate_password_hash("carter55")
         c4 = Customer(
-            name="Ashley Carter", 
+            name="Ashley Carter",
+            username="carter55",
+            _password_hash="mynameisash", 
             phone_number="2230098877",
             email="carterashley@yahoo.com",
             address="999 Warner Way Jacksonville, FL 33344")

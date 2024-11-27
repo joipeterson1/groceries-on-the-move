@@ -18,32 +18,56 @@ class Home(Resource):
     def get_products():
         return '<h1>Welcome to Groceries on the Move!</h1>'
 
-class ProductPage(Resource):
+class ProductByID(Resource):
     def get_product_by_id(id):
-        return f'<h1></h1>'
+        pass
 
-class MyOrders(Resource):
+class OrderByID(Resource):
     def get_order_by_id(id):
-        return '<h1>Project Server</h1>'
+        pass
 
     def confirm_order_by_id(id):
-        return '<h1>Project Server</h1>'
+        pass
     
     def patch_order_by_id(id):
-        return '<h1>Project Server</h1>'
+        pass
     
     def delete_order_by_id(id):
-        return '<h1>Project Server</h1>'
+        pass
     
-class OrderForm(Resource):
+class AddOrder(Resource):
     def post_orders():
-        return '<h1>Project Server</h1>'
+        pass
+    
+class ClearSession(Resource):
+    def clear():
+        pass
+
+class SignUp(Resource):
+    def post_signup():
+        pass
+
+class CheckSession(Resource):
+    def get_username():
+        pass
+
+class Login(Resource):
+    def post_session():
+        pass
+
+class Logout(Resource):
+    def delete_session():
+        pass
     
 api.add_resource(Home, '/')
-api.add_resource(ProductPage, '/products/<int:id>')
-api.add_resource(MyOrders, '/orders/<int:id>')
-api.add_resource(OrderForm, '/orders')
-
+api.add_resource(ProductByID, '/products/<int:id>')
+api.add_resource(OrderByID, '/orders/<int:id>')
+api.add_resource(AddOrder, '/orders')
+api.add_resource(ClearSession, '/clear', endpoint="clear")
+api.add_resource(SignUp, '/signup', endpoint="signup")
+api.add_resource(CheckSession, '/check_session', endpoint="check_session")
+api.add_resource(Login, '/login', endpoint="login")
+api.add_resource(Logout, '/logout', endpoint="logout")
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

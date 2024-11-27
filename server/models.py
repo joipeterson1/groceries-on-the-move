@@ -1,15 +1,15 @@
 from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_serializer import SerializerMixin
 # from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates, relationship
 
-from config import db
+from config import db, bcrypt
 
 order_product_table = db.Table(
     'order_products',
     db.Column('order_id', db.Integer, db.ForeignKey('orders.id'), primary_key=True),
     db.Column('product_id', db.Integer, db.ForeignKey('products.id'), primary_key=True),
-    # Enforce uniqueness on the combination of order_id and product_id
     db.UniqueConstraint('order_id', 'product_id', name='uix_order_product')
 )
 
@@ -20,12 +20,37 @@ class Customer(db.Model, SerializerMixin):
     serialize_rules = ('-orders.customer',)
 
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, nullable=False, unique=True)
+    _password_hash = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     phone_number = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     address = db.Column(db.String, nullable=False)
 
     orders = db.relationship("Order", back_populates="customer", cascade="all, delete-orphan")
+
+    @validates('username')
+    def validate_username(self, key, username):
+        existing_username = db.session.query(Customer).filter(Customer.username == username).first()
+        if existing_username:
+            raise ValueError ("Username already in use.")
+        if len(username) == 0:
+            raise ValueError ("Username must be a non empty string.")
+        return username
+    
+    @hybrid_property
+    def password_hash(self):
+        raise AttributeError ("Password hashes may not be viewed.")
+    
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(
+            password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(
+            self._password_hash, password.encode('utf-8'))
 
     @validates('name')
     def validate_name(self, key, name):
@@ -50,6 +75,9 @@ class Customer(db.Model, SerializerMixin):
         if len(phone_number) != 10 or not phone_number.isdigit():
             raise ValueError("Phone number must be 10 digits long and only contain numbers.")
         return phone_number
+    
+    def __repr__(self):
+        return f'{self.name}, Customer ID: {self.id}'
 
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
