@@ -101,6 +101,14 @@ class OrderByID(Resource):
         
         return {'error': 'Order not found'}, 404
     
+class Cart(Resource):
+    def get(self):
+        cart = []
+        
+        if cart:
+            response_dict = cart.to_dict()
+            response = make_response(jsonify(response_dict, 200))
+    
 class ClearSession(Resource):
     def delete(self):
         session['page_views'] = None
@@ -149,6 +157,7 @@ api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(Orders, '/orders')
+api.add_resource(Cart, '/cart')
 api.add_resource(ClearSession, '/clear', endpoint="clear")
 api.add_resource(SignUp, '/signup', endpoint="signup")
 api.add_resource(CheckSession, '/check_session', endpoint="check_session")

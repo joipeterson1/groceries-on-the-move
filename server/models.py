@@ -138,14 +138,6 @@ class Order(db.Model, SerializerMixin):
     order_total = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
 
-    # def to_dict(self):
-    #     return {
-    #         "id": self.id,
-    #         "order_date": self.order_date,
-    #         "order_total": self.order_total,
-    #         "customer_id": self.customer_id
-    #         }
-
     customer = db.relationship('Customer', back_populates="orders")
     products = db.relationship(
         'Product',
