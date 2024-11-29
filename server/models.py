@@ -17,7 +17,7 @@ order_product_table = db.Table(
 class Customer(db.Model, SerializerMixin):
     __tablename__ = 'customers'
 
-    serialize_rules = ('-orders.customer',)
+    serialize_rules = ('-orders.customer', '-orders.products') 
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, nullable=False, unique=True)
@@ -28,6 +28,17 @@ class Customer(db.Model, SerializerMixin):
     address = db.Column(db.String, nullable=False)
 
     orders = db.relationship("Order", back_populates="customer", cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "_password_hash": self._password_hash,
+            "name": self.name,
+            "phone_number": self.phone_number,
+            "email": self.email,
+            "address": self.address
+            }
 
     @validates('username')
     def validate_username(self, key, username):
@@ -91,6 +102,14 @@ class Product(db.Model, SerializerMixin):
 
     orders = db.relationship('Order', secondary=order_product_table, back_populates='products')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_name": self.product_name,
+            "price": self.price,
+            "product_img": self.product_img
+            }
+
     @validates('product_name')
     def validate_product_name(self, key, product_name):
         if len(product_name) == 0:
@@ -112,12 +131,20 @@ class Product(db.Model, SerializerMixin):
 class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
-    serialize_rules = ('-customer.orders', '-product.orders',)
+    serialize_rules = ('-customer.orders', '-products.orders') 
 
     id = db.Column(db.Integer, primary_key=True)
     order_date = db.Column(db.DateTime, nullable=False)
     order_total = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
+
+    # def to_dict(self):
+    #     return {
+    #         "id": self.id,
+    #         "order_date": self.order_date,
+    #         "order_total": self.order_total,
+    #         "customer_id": self.customer_id
+    #         }
 
     customer = db.relationship('Customer', back_populates="orders")
     products = db.relationship(
