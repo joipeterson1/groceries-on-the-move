@@ -14,7 +14,7 @@ from models import Customer, Product, Order, order_product_table
 
 class Home(Resource):
     def get(self):
-        return "<h1> Welcome to Groceries on the Move! </h1>"
+        return 'Welcome to Groceries on the Move!'
    
 class Products(Resource):
     def get(self):
@@ -29,7 +29,8 @@ class ProductByID(Resource):
     
 class Orders(Resource):
     def get(self):
-        if session['customer_id']:
+        customer_id = session.get('customer_id')
+        if customer_id:
             orders = Orders.query.filter(Order.customer_id == session.get['customer_id'])
             return [order.to_dict() for order in orders], 200
         return {'error': 'Unauthorized'}, 401
