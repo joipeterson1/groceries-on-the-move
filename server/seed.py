@@ -15,6 +15,8 @@ if __name__ == '__main__':
         print("Starting seed...")
         
         # Clear the `order_products` table using raw SQL
+        db.session.execute(text('DELETE FROM cart_items'))
+        db.session.execute(text('DELETE FROM carts'))
         db.session.execute(text('DELETE FROM order_products'))
         db.session.commit()
 
