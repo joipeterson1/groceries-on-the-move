@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 # Local imports
 from config import app, db, api
 
-from models import Customer, Product, Order, order_product_table
+from models import Customer, Product, Order, Cart, CartItem, order_product_table
 
 class Home(Resource):
     def get(self):
@@ -103,11 +103,86 @@ class OrderByID(Resource):
     
 class Cart(Resource):
     def get(self):
-        cart = []
-        
+        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
+        if not customer_id:
+            return jsonify({"error": "User not logged in"}), 401
+
+        cart = Cart.query.filter_by(customer_id=customer_id).first()
+        if not cart:
+            return jsonify({"message": "Cart is empty"}), 200
+
+        return make_response(jsonify(cart.to_dict()), 200)
+    
+    def post(self):
+        data = request.get_json()
+        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
+        product_id = data.get('product_id')
+        quantity = data.get('quantity', 1)
+
+        if not customer_id:
+            return jsonify({"error": "User not logged in"}), 401
+
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+
+        cart = Cart.query.filter_by(customer_id=customer_id).first()
+        if not cart:
+            cart = Cart(customer_id=customer_id)
+            db.session.add(cart)
+            db.session.commit()
+
+    # Check if product already exists in the cart
+        cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
+        if cart_item:
+            cart_item.quantity += quantity  # Update quantity
+        else:
+            cart_item = CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
+            db.session.add(cart_item)
+
+        db.session.commit()
+        return jsonify({"message": "Item added to cart"}), 200
+    
+
+    def delete(self):
+        data = request.get_json()
+        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
+        product_id = data.get('product_id')
+
+        if not customer_id:
+            return jsonify({"error": "User not logged in"}), 401
+
+        cart = Cart.query.filter_by(customer_id=customer_id).first()
+        if not cart:
+            return jsonify({"error": "Cart not found"}), 404
+
+        cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
+        if not cart_item:
+            return jsonify({"error": "Item not in cart"}), 404
+
+        db.session.delete(cart_item)
+        db.session.commit()
+        return jsonify({"message": "Item removed from cart"}), 200
+
+    def patch(self):
+        customer_id = session.get('customer_id')
+        if not customer_id:
+            return {'error': 'Customer not logged in'}, 401
+        cart = Cart.query.filter_by(customer_id=customer_id).first()
         if cart:
-            response_dict = cart.to_dict()
-            response = make_response(jsonify(response_dict, 200))
+                for attr in request.form:
+                    setattr(cart, attr, request.form[attr])
+        
+                db.session.add(cart)
+                db.session.commit() 
+
+                response_dict = cart.to_dict()
+                response = make_response(jsonify(response_dict, 200))
+
+                return response
+        
+        return {'error': 'Your cart is empty.'}, 404
+
     
 class ClearSession(Resource):
     def delete(self):

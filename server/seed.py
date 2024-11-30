@@ -4,7 +4,7 @@ import datetime
 from random import randint, choice as rc
 from faker import Faker
 from app import app
-from models import db, Customer, Product, Order, order_product_table
+from models import db, Customer, Product, Order, Cart, CartItem, order_product_table
 from sqlalchemy import text
 from werkzeug.security import generate_password_hash
 
@@ -102,5 +102,35 @@ if __name__ == '__main__':
         db.session.add(o2)
 
         db.session.commit()
+
+        print("Adding items to the carts...")
+
+        # Create carts for customers and add items to the cart
+        c1_cart = Cart(customer_id=c1.id)  # Create a cart for customer 1
+        c2_cart = Cart(customer_id=c2.id)  # Create a cart for customer 2
+        c3_cart = Cart(customer_id=c3.id)  # Create a cart for customer 3
+        c4_cart = Cart(customer_id=c4.id)  # Create a cart for customer 4
+        db.session.add_all([c1_cart, c2_cart, c3_cart, c4_cart])
+        db.session.commit()
+
+        # Add items to customer 1's cart
+        cart_item1 = CartItem(cart_id=c1_cart.id, product_id=p1.id, quantity=2)  # 2 Whole Milk
+        cart_item2 = CartItem(cart_id=c1_cart.id, product_id=p2.id, quantity=1)  # 1 Bread Loaf
+        db.session.add_all([cart_item1, cart_item2])
+        
+        # Add items to customer 2's cart
+        cart_item3 = CartItem(cart_id=c2_cart.id, product_id=p3.id, quantity=3)  # 3 Orange Juices
+        cart_item4 = CartItem(cart_id=c2_cart.id, product_id=p5.id, quantity=1)  # 1 Toothpaste
+        db.session.add_all([cart_item3, cart_item4])
+
+        # Add items to customer 3's cart
+        cart_item5 = CartItem(cart_id=c3_cart.id, product_id=p6.id, quantity=4)  # 4 Mouthwashes
+        cart_item6 = CartItem(cart_id=c3_cart.id, product_id=p4.id, quantity=1)  # 1 Tissue
+        db.session.add_all([cart_item5, cart_item6])
+
+        # Add items to customer 4's cart
+        cart_item7 = CartItem(cart_id=c4_cart.id, product_id=p1.id, quantity=1)  # 1 Whole Milk
+        cart_item8 = CartItem(cart_id=c4_cart.id, product_id=p2.id, quantity=2)  # 2 Bread Loafs
+        db.session.add_all([cart_item7, cart_item8])
 
         print("Complete!")
