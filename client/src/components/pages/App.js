@@ -15,7 +15,7 @@ function App() {
   const history = useHistory();
 
   useEffect(()=> {
-    fetch('http://127.0.0.1:5555/check-session')
+    fetch('/check-session')
   .then((r) => {
     if (!r.ok) {
       throw new Error('Network response was not ok');
@@ -33,7 +33,7 @@ function App() {
 }, [])
   
   useEffect(() => {
-    fetch('http://127.0.0.1:5555/products')
+    fetch('/products')
     .then((r) => r.json())
     .then((products) => setProducts(products))
   }, []);
@@ -41,7 +41,7 @@ function App() {
 
   useEffect(() => {
     if (isLoggedIn && customer) {
-      fetch('http://127.0.0.1:5555/cart')
+      fetch('/cart')
         .then((r) => r.json())
         .then((cart) => {
           if (cart) {
@@ -72,7 +72,7 @@ function App() {
   // Update cart on change
   useEffect(() => {
     if (cartData.length > 0) {
-      fetch('http://127.0.0.1:5555/cart', {
+      fetch('/cart', {
         method: 'POST',
         body: JSON.stringify({ items: cartData }),
         headers: { 'Content-Type': 'application/json' },
@@ -89,7 +89,7 @@ function App() {
   function onLogout() {
     setIsLoggedIn(false);
     setCartData([]);
-    fetch('http://127.0.0.1:5555/logout', { method: 'DELETE' })
+    fetch('/logout', { method: 'DELETE' })
       .then(() => {
         history.push('/login');
       })

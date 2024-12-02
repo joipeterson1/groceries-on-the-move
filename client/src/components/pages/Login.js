@@ -42,7 +42,7 @@ function Login({customer/*, setCustomer*/, setIsLoggedIn, isLoggedIn}) {
     }
 
     function handleLogin(e) {
-    fetch("http://127.0.0.1:5555/login", {
+    fetch("/login", {
       method: "POST",
       body: JSON.stringify(loginFormData),
       headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ function Login({customer/*, setCustomer*/, setIsLoggedIn, isLoggedIn}) {
     setLoading(true);
     setSignupError(null); 
 
-    fetch("http://127.0.0.1:5555/signup", {
+    fetch("/signup", {
       method: "POST",
       body: JSON.stringify(signupFormData),
       headers: { "Content-Type": "application/json" },

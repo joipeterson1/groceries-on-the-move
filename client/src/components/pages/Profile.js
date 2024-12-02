@@ -11,7 +11,7 @@ function Profile({ customer, setCustomer, setIsLoggedIn }) {
 
   useEffect(() => {
     // Fetch profile data
-    fetch("http://127.0.0.1:5555/check-session", {
+    fetch("/check-session", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -30,7 +30,7 @@ function Profile({ customer, setCustomer, setIsLoggedIn }) {
           setProfileData(data);
   
           // Fetch orders after getting profile data
-          return fetch("http://127.0.0.1:5555/orders", {
+          return fetch("/orders", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -66,7 +66,7 @@ function Profile({ customer, setCustomer, setIsLoggedIn }) {
   
 
   const handleLogout = () => {
-    fetch("http://127.0.0.1:5555/logout", {
+    fetch("/logout", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

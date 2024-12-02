@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import NavBar from "../NavBar";
 
-function ProductPage(/*{AddToCart}*/) {
+function ProductPage({AddToCart}) {
   const { id } = useParams()
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5555/products/${id}`)
+    fetch(`/products/${id}`)
       .then((r) => r.json())
       .then((data) => setProduct(data));
   }, [id]);
@@ -23,7 +23,7 @@ function ProductPage(/*{AddToCart}*/) {
       <h3>{product.product_name}</h3>
       <img src={product.product_img} alt="product_img"/>
       <p>Price: ${product.price}</p>
-      {/* <button onClick={() => AddToCart(product)}>Add to Cart</button> */}
+     <button onClick={() => AddToCart(product)}>Add to Cart</button>
     </div>
   );
 }

@@ -33,7 +33,7 @@ function CartPage({ customer, cart, isLoggedIn }) {
     };
 
     // Make a POST request to create the order
-    fetch('http://127.0.0.1:5555/orders', {
+    fetch('/orders', {
       method: 'POST',
       body: JSON.stringify(orderData),
       headers: { 'Content-Type': 'application/json' },

@@ -8,7 +8,7 @@ function OrderDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5555/orders/${id}`, {
+    fetch(`/orders/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

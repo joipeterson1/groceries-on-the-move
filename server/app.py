@@ -228,8 +228,8 @@ class Login(Resource):
     @cross_origin(origins="http://localhost:3000")
     def post(self):
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        username = data['username']
+        password = data['password']
         customer = Customer.query.filter(Customer.username == username).first()
         if customer and customer.authenticate(password):
             session['customer_id'] = customer.id
