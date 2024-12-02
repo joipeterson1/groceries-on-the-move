@@ -235,7 +235,7 @@ api.add_resource(Orders, '/orders')
 api.add_resource(Cart, '/cart')
 api.add_resource(ClearSession, '/clear', endpoint="clear")
 api.add_resource(SignUp, '/signup', endpoint="signup")
-api.add_resource(CheckSession, '/check_session', endpoint="check_session")
+api.add_resource(CheckSession, '/check-session', endpoint="check-session")
 api.add_resource(Login, '/login', endpoint="login")
 api.add_resource(Logout, '/logout', endpoint="logout")
 

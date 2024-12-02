@@ -1,14 +1,13 @@
 import React from "react";
 import {useState} from "react"
-// import {useOutletContext} from "react-router-dom"
 import NavBar from "../NavBar"
-import { or } from "ajv/dist/compile/codegen";
+import {useHistory} from "react-router-dom"
 
 
-function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
-    // const login = useOutletContext()
-    // const profile = useOutletContext()
-    const [formData, setFormData] = useState({
+function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
+    const history = useHistory()
+
+    const [loginFormData, setLoginFormData] = useState({
         username: "",
         password: ""
     })
@@ -22,72 +21,75 @@ function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
     })
 
     function handleChange(e){
-        (setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        }))
-        or
+        if (isSignedUp){
+            (setLoginFormData({
+                ...loginFormData,
+                [e.target.name]: e.target.value,
+            }))
+        } else {
         (setSignupFormData({
             ...signupFormData,
             [e.target.name]: e.target.value,
         }))
     }
+}
 
-    const login = () => {
-    setIsLoggedIn(true);
-    };
-
-    function handleLogin(e){
-        e.preventDefault()
-        fetch('/login').then((r)=> {
-            if (r.ok){
-                r.json().then((login)=> setIsLoggedIn(login))
-            }
+    function handleLogin(e) {
+        e.preventDefault();
+        fetch('http://127.0.0.1:5555/login', {
+            method: 'POST',
+            body: JSON.stringify(loginFormData),
+            headers: { 'Content-Type': 'application/json' }
         })
-        login()
+            .then((r) => {
+                if (r.ok) {
+                    r.json().then((customer) => onLogin(customer));
+                }
+            });
     }
 
-    const profile = () => {
-        setIsSignedUp(true);
-      };
 
     function handleSignup(e){
         e.preventDefault()
-        fetch('/signup').then((r)=> {
-            if (r.ok){
-                r.json().then((signup)=> setIsSignedUp(signup))
-            }
+        fetch('http://127.0.0.1:5555/signup', {
+            method: 'POST',
+            body: JSON.stringify(signupFormData),
+            headers: { 'Content-Type': 'application/json' }
         })
-       profile()
+            .then((r) => {
+                if (r.ok) {
+                    r.json().then((customer) => onLogin(customer));
+                }
+            });
     }
 
-    function signupForm(){
-        if (isSignedUp === false){
+    function ToggleSignUp(){
+        setIsSignedUp(!isSignedUp)
+    }
+
+    const renderSignupForm = () => (
         <form onSubmit={handleSignup}>
-            <header>
-                <NavBar/>
-            </header>
-            <label for="username">Username</label>
+            <label htmlFor="username">Username</label>
             <div>
                 <input
-                id="username"
+                id="signup-username"
                 type="text"
                 name="username"
                 value={signupFormData.username}
                 onChange={handleChange}
                 />
             </div>
-            <label for="password">Password</label>
+            <label htmlFor="password">Password</label>
             <div>
                 <input
-                id="password"
+                id="signup-password"
                 type="text"
                 name="password"
                 value={signupFormData.password}
                 onChange={handleChange}
                 />
             </div>
-            <label for="name">Name</label>
+            <label htmlFor="name">Name</label>
             <div>
                 <input
                 id="name"
@@ -97,7 +99,7 @@ function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
                 onChange={handleChange}
                 />
             </div>
-            <label for="phone_number">Phone Number</label>
+            <label htmlFor="phone_number">Phone Number</label>
             <div>
                 <input
                 id="phone_number"
@@ -107,7 +109,7 @@ function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
                 onChange={handleChange}
                 />
             </div>
-            <label for="email">Email</label>
+            <label htmlFor="email">Email</label>
             <div>
                 <input
                 id="email"
@@ -117,7 +119,7 @@ function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
                 onChange={handleChange}
                 />
             </div>
-            <label for="address">Address</label>
+            <label htmlFor="address">Address</label>
             <div>
                 <input
                 id="address"
@@ -130,43 +132,48 @@ function Login({isLoggedIn, setIsLoggedIn, isSignedUp, setIsSignedUp}) {
             <button type="submit">Sign up now!</button>
             
         </form>
-    }}
+    )
 
-    function ToggleSignUp(){
-        setIsSignedUp((isSignedUp)=> !isSignedUp)
-    }
-
-if (isLoggedIn === false) {
-    return (
+    const renderLoginForm = () => (
         <form onSubmit={handleLogin}>
-            <header>
-                <NavBar/>
-            </header>
-            <label for="username">Username</label>
-            <div>
-                <input
-                id="username"
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                />
-            </div>
-            <label for="password">Password</label>
-            <div>
-                <input
-                id="password"
-                type="text"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                />
-            </div>
-            <button type="submit">Login</button>
-            <link onClick={ToggleSignUp}>{isSignedUp ? "Create an account" : "I already have an account"}.</link>
-            {signupForm}
+          <header>
+            <NavBar />
+          </header>
+          <label htmlFor="username">Username</label>
+          <div>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              value={loginFormData.username}
+              onChange={handleChange}
+            />
+          </div>
+          <label htmlFor="password">Password</label>
+          <div>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={loginFormData.password}
+              onChange={handleChange}
+            />
+          </div>
+          <button type="submit">Login</button>
         </form>
       );
+
+
+if (!isLoggedIn) {
+    return (
+        <>
+          {renderLoginForm()}
+          <h2> Create your account: </h2>
+          {renderSignupForm()}
+        </>
+      );
+} else {
+    {history.push("/profile")}
 }
 }
 

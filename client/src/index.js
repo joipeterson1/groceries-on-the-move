@@ -12,7 +12,15 @@ import ProductPage from "./components/pages/ProductPage"
 const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 root.render(
-  <App/>
+  <BrowserRouter>
+      <Switch> {/* Use Switch instead of Routes in React Router v5 */}
+      <Route exact path="/" component={App} /> {/* Use 'component' prop */}
+      <Route path="/product-page/:id" component={ProductPage} /> {/* Dynamic product page */}
+      <Route path="/profile" component={Profile} />
+      <Route path="/cart-page" component={CartPage} />
+      <Route path="/login" component={Login} />
+    </Switch>
+  </BrowserRouter>
 );
 
 

@@ -1,20 +1,29 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
-import NavBar from "../NavBar"
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import NavBar from "../NavBar";
 
-function ProductPage({ AddToCart }) {
-  const location = useLocation();
-  const { product } = location.state;
+function ProductPage(/*{AddToCart}*/) {
+  const { id } = useParams()
+  const [product, setProduct] = useState(null);
+
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5555/products/${id}`)
+      .then((r) => r.json())
+      .then((data) => setProduct(data));
+  }, [id]);
+
+  if (!product) return <div>Loading...</div>;
 
   return (
     <div>
         <header>
             <NavBar/>
         </header>
-      <h1>{product.name}</h1>
-      <img src={product.product_img} alt="product_img" />
-      <h4>{product.price}</h4>
-      <button onClick={() => AddToCart(product)}>Add to Cart</button>
+      <h2>Product Details</h2>
+      <h3>{product.product_name}</h3>
+      <img src={product.product_img} alt="product_img"/>
+      <p>Price: ${product.price}</p>
+      {/* <button onClick={() => AddToCart(product)}>Add to Cart</button> */}
     </div>
   );
 }
