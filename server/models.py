@@ -51,7 +51,7 @@ class Customer(db.Model, SerializerMixin):
     
     @hybrid_property
     def password_hash(self):
-        raise AttributeError ("Password hashes may not be viewed.")
+        return self._password_hash
     
     @password_hash.setter
     def password_hash(self, password):

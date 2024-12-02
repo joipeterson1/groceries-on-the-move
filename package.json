@@ -3,6 +3,7 @@
     "ajv": "^7.2.4"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "react-router-dom": "^7.0.1"
   }
 }

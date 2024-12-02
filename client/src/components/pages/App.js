@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Route, Switch, useHistory } from "react-router-dom"; // Use BrowserRouter and Routes
+import { BrowserRouter as Router, Route, Switch, useHistory } from "react-router-dom";
 import NavBar from '../NavBar';
 import ProductList from '../list/products/ProductList';
-// import CartPage from '../pages/CartPage';
+import CartPage from '../pages/CartPage';
 import Login from '../pages/Login';
+import Profile from "./Profile";
 import { Link } from "react-router-dom";
 
 function App() {
   const [products, setProducts] = useState([]);
-  // const [cart, setCart] = useState([]);
+  const [cartData, setCartData] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isSignedUp, setIsSignedUp] = useState(false);
   const [customer, setCustomer] = useState(null)
   const history = useHistory();
 
@@ -20,7 +20,7 @@ function App() {
     if (!r.ok) {
       throw new Error('Network response was not ok');
     }
-    return r.json().catch(() => ({})); // If json parsing fails, return an empty object
+    return r.json().catch(() => ({}));
   })
   .then((customer) => {
     if (customer) {
@@ -39,26 +39,61 @@ function App() {
   }, []);
 
 
-  // useEffect(() => {
-  //   fetch('http://127.0.0.1:5555/cart')
-  //   .then((r) => r.json())
-  //   .then((cart_items) => setCart(cart_items));
-  // }, []);
+  useEffect(() => {
+    if (isLoggedIn && customer) {
+      fetch('http://127.0.0.1:5555/cart')
+        .then((r) => r.json())
+        .then((cart) => {
+          if (cart) {
+            setCartData(cart.items); // Assuming cart contains items
+          }
+        })
+        .catch((error) => console.error("Error fetching cart data", error));
+    }
+  }, [isLoggedIn, customer])
 
-  // function AddToCart(product) {
-  //   setCart([...cart, product]);
-  // }
-
-
-  function onLogin(customerData){
-    setCustomer(customerData)
-    setIsLoggedIn(true)
-    setIsSignedUp(true)
+   // Add to cart function (optimizing cart state update)
+   function AddToCart(item) {
+    const existingItem = cartData.find(cartItem => cartItem.product_id === item.product_id);
+    if (existingItem) {
+      // If item already in cart, update quantity
+      const updatedCart = cartData.map(cartItem =>
+        cartItem.product_id === item.product_id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      );
+      setCartData(updatedCart);
+    } else {
+      // Otherwise add new item to cart
+      setCartData([...cartData, { ...item, quantity: 1 }]);
+    }
   }
 
-  function onLogout(){
-    setCustomer(null)
-    setIsLoggedIn(false)
+  // Update cart on change
+  useEffect(() => {
+    if (cartData.length > 0) {
+      fetch('http://127.0.0.1:5555/cart', {
+        method: 'POST',
+        body: JSON.stringify({ items: cartData }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((r) => {
+          if (!r.ok) {
+            throw new Error('Error updating cart');
+          }
+        })
+        .catch((error) => console.error("Error updating cart", error));
+    }
+  }, [cartData]);
+
+  function onLogout() {
+    setIsLoggedIn(false);
+    setCartData([]);
+    fetch('http://127.0.0.1:5555/logout', { method: 'DELETE' })
+      .then(() => {
+        history.push('/login');
+      })
+      .catch((error) => console.error('Logout failed', error));
   }
 
 
@@ -78,22 +113,23 @@ function App() {
         (<div>
           <h2>Welcome back, {customer.name}! </h2> 
         </div>) : null}
-        <NavBar /*cart={cart}*/ onLogout={onLogout}/>
+        <NavBar cart={cartData} onLogout={onLogout}/>
       </header>
       <main>
         <h1>Welcome to Groceries on the Move!</h1>
         <h3>View our Products below.</h3>
-       <ProductList products={products} /*AddToCart={AddToCart}*//>
+       <ProductList products={products} AddToCart={AddToCart}/>
         <Switch>
-          {/* <Route path="/cart"element={<CartPage cart={cart} />} /> */}
+          <Route path="/cart"render={ () => (<CartPage customer={customer} cart={cartData} isLoggedIn={isLoggedIn}/>)} />
           <Route path="/login" render={() => (
             <Login
-              onLogin={onLogin}
+              customer={customer}
+              setCustomer={setCustomer}
               isLoggedIn={isLoggedIn}
-              isSignedUp={isSignedUp}
-              setIsSignedUp={setIsSignedUp}
+              setIsLoggedIn={setIsLoggedIn}
               />
           )} />
+          <Route path="/profile" render= {()=> (<Profile customer={customer} setCustomer={setCustomer} setIsLoggedIn={setIsLoggedIn}/>)} />
         </Switch>
       </main>
       </Router>

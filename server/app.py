@@ -9,47 +9,51 @@ from datetime import datetime, timezone
 
 # Local imports
 from config import app, db, api
-
+from flask_cors import cross_origin
 from models import Customer, Product, Order, Cart, CartItem, order_product_table
 
 class Home(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self):
         return 'Welcome to Groceries on the Move!'
    
 class Products(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self):
         products =[product.to_dict() for product in Product.query.all()]
-        return make_response(jsonify(products), 200)
+        return jsonify(products), 200
 
 class ProductByID(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self, id):
        product = Product.query.filter(Product.id == id).first()
        product_dict = product.to_dict()
-       return make_response(jsonify(product_dict), 200)
+       return jsonify(product_dict), 200
     
 class Orders(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self):
         customer_id = session.get('customer_id')
         if customer_id:
-            orders = Orders.query.filter(Order.customer_id == session.get['customer_id'])
+            orders = Order.query.filter(Order.customer_id == session.get['customer_id'])
             return [order.to_dict() for order in orders], 200
-        return {'error': 'Unauthorized'}, 401
+        return jsonify({'error': 'Unauthorized'}), 401
 
     def post(self):
         customer_id = session.get('customer_id')
         if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
+            return jsonify({'error': 'Customer not logged in'}), 401
         
         customer = Customer.query.get(customer_id)
         if not customer:
-            return {'error': 'Customer not found'}, 404
+            return jsonify({'error': 'Customer not found'}), 404
         
         data = request.get_json()
         product_ids = data.get('product_id', [])
         products = Product.query.filter(Product.id.in_(product_ids)).all()
         
         if len(products) != len(product_ids):
-            return {'error': 'One or more products not found'}, 404
+            return jsonify({'error': 'One or more products not found'}), 404
 
         order_total = sum([product.price for product in products])
 
@@ -64,13 +68,14 @@ class Orders(Resource):
         db.session.add(new_order)
         db.session.commit()
 
-        return make_response(jsonify(new_order.to_dict()), 201)
+        return jsonify(new_order.to_dict()), 201
 
 class OrderByID(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def patch(self, id):
         customer_id = session.get('customer_id')
         if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
+            return jsonify({'error': 'Customer not logged in'}), 401
         order = Order.query.filter_by(id=id, customer_id=customer_id).first()
         if order:
                 for attr in request.form:
@@ -80,16 +85,16 @@ class OrderByID(Resource):
                 db.session.commit() 
 
                 response_dict = order.to_dict()
-                response = make_response(jsonify(response_dict, 200))
+                response = jsonify(response_dict, 200)
 
                 return response
         
-        return {'error': 'Order not found'}, 404
+        return jsonify({'error': 'Order not found'}), 404
     
     def delete(self, id):
         customer_id = session.get('customer_id')
         if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
+            return jsonify({'error': 'Customer not logged in'}), 401
         
         order = Order.query.filter_by(id=id, customer_id=customer_id).first()
         
@@ -99,9 +104,10 @@ class OrderByID(Resource):
             
             return jsonify({'message': 'Order successfully deleted'}), 200
         
-        return {'error': 'Order not found'}, 404
+        return jsonify({'error': 'Order not found'}), 404
     
 class Cart(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self):
         customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
         if not customer_id:
@@ -111,7 +117,7 @@ class Cart(Resource):
         if not cart:
             return jsonify({"message": "Cart is empty"}), 200
 
-        return make_response(jsonify(cart.to_dict()), 200)
+        return jsonify(cart.to_dict()), 200
     
     def post(self):
         data = request.get_json()
@@ -141,7 +147,9 @@ class Cart(Resource):
             db.session.add(cart_item)
 
         db.session.commit()
-        return jsonify({"message": "Item added to cart"}), 200
+        response = jsonify({"message": "Item added to cart"}), 200
+        print("Response before return:", response)  # Debugging line
+        return response  # Direct return of the response object
     
 
     def delete(self):
@@ -167,7 +175,7 @@ class Cart(Resource):
     def patch(self):
         customer_id = session.get('customer_id')
         if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
+            return jsonify({'error': 'Customer not logged in'}), 401
         cart = Cart.query.filter_by(customer_id=customer_id).first()
         if cart:
                 for attr in request.form:
@@ -177,22 +185,22 @@ class Cart(Resource):
                 db.session.commit() 
 
                 response_dict = cart.to_dict()
-                response = make_response(jsonify(response_dict, 200))
-
-                return response
+                return jsonify(response_dict), 200
         
-        return {'error': 'Your cart is empty.'}, 404
+        return jsonify({'error': 'Your cart is empty.'}), 404
 
     
 class ClearSession(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def delete(self):
         session['page_views'] = None
         session['customer_id'] = None
-        return {}, 204
+        return jsonify({}), 204
 
 class SignUp(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def post(self):
-        json = request.json()
+        json = request.json
         customer = Customer(
             username=json['username']
         )
@@ -203,29 +211,37 @@ class SignUp(Resource):
         customer.address = json['address']
         db.session.add(customer)
         db.session.commit()
-        return make_response(jsonify(customer.to_dict(), 201))
+        return jsonify(customer.to_dict(), 201)
 
 class CheckSession(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def get(self):
-        customer = Customer.query.filter(Customer.id == session.get('customer_id')).first()
-        if customer:
-            return make_response(jsonify(customer.to_dict(), 200))
-        return {}, 204
+        print("Session customer_id:", session.get('customer_id'))
+        customer_id = session.get('customer_id')
+        if customer_id:
+            customer = Customer.query.filter(Customer.id == customer_id).first()
+            if customer:
+                return jsonify(customer.to_dict(), 200)
+        return jsonify({'message': '401: Not Authorized'}), 401
 
 class Login(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def post(self):
-        username = request.get_json()['username']
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
         customer = Customer.query.filter(Customer.username == username).first()
-        password = request.get_json()['password']
-        if customer.authenticate(password):
+        if customer and customer.authenticate(password):
             session['customer_id'] = customer.id
-            return make_response(jsonify(customer.to_dict(), 200))
-        return {'error': 'Invalid username or password'}, 401
+            print("Session customer_id:", session.get('customer_id'))
+            return jsonify(customer.to_dict(), 200)
+        return jsonify({'error': 'Invalid username or password'}), 401
 
 class Logout(Resource):
+    @cross_origin(origins="http://localhost:3000")
     def delete(self):
         session['customer_id'] = None
-        return {'message': '204: Non Content'}, 204
+        return jsonify({'message': '204: Non Content'}), 204
     
 api.add_resource(Home, '/')
 api.add_resource(Products, '/products')
@@ -238,7 +254,6 @@ api.add_resource(SignUp, '/signup', endpoint="signup")
 api.add_resource(CheckSession, '/check-session', endpoint="check-session")
 api.add_resource(Login, '/login', endpoint="login")
 api.add_resource(Logout, '/logout', endpoint="logout")
-
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
 

@@ -32,7 +32,7 @@ if __name__ == '__main__':
         c1 = Customer(
             name="Jane Doe", 
             username="janedoe1234",
-            _password_hash="mynameisjane",
+            password_hash="mynameisjane",
             phone_number="8504463222",
             email="janedoe@gmail.com",
             address="112 Love Dr Atlanta, GA 33234")
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         c2 = Customer(
             name="Austin Powers",
             username="austin100",
-            _password_hash="mynameisaustin",
+            password_hash="mynameisaustin",
             phone_number="8502232222",
             email="austinnn@gmail.com",
             address="999 Powers Lane Atlanta, GA 33204")
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         c3 = Customer(
             name="Ashton Davis",
             username="davisa12",
-            _password_hash="mynameisashton", 
+            password_hash="mynameisashton", 
             phone_number="8501234567",
             email="davisa@gmail.com",
             address="89 Cookie Lane Tallahassee, FL 33234")
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         c4 = Customer(
             name="Ashley Carter",
             username="carter55",
-            _password_hash="mynameisash", 
+            password_hash="mynameisash", 
             phone_number="2230098877",
             email="carterashley@yahoo.com",
             address="999 Warner Way Jacksonville, FL 33344")

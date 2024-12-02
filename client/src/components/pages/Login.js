@@ -3,10 +3,8 @@ import {useState} from "react"
 import NavBar from "../NavBar"
 import {useHistory} from "react-router-dom"
 
-
-function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
+function Login({customer/*, setCustomer*/, setIsLoggedIn, isLoggedIn}) {
     const history = useHistory()
-
     const [loginFormData, setLoginFormData] = useState({
         username: "",
         password: ""
@@ -19,53 +17,83 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
         email: "",
         address: ""
     })
+    const [loginError, setLoginError] = useState(null); // Error handling for login
+    const [signupError, setSignupError] = useState(null); // Error handling for signup
+    const [loading, setLoading] = useState(false);
 
-    function handleChange(e){
-        if (isSignedUp){
-            (setLoginFormData({
-                ...loginFormData,
-                [e.target.name]: e.target.value,
-            }))
-        } else {
-        (setSignupFormData({
+    function onLogin(){
+        /*setCustomer(customer)*/
+        setIsLoggedIn(true)
+        history.push("/profile")
+      }
+
+    function signupHandleChange(e){
+        setSignupFormData({
             ...signupFormData,
             [e.target.name]: e.target.value,
-        }))
+        })
     }
-}
+
+    function handleChange(e){
+        setLoginFormData({
+            ...loginFormData,
+            [e.target.name]: e.target.value,
+        })
+    }
 
     function handleLogin(e) {
-        e.preventDefault();
-        fetch('http://127.0.0.1:5555/login', {
-            method: 'POST',
-            body: JSON.stringify(loginFormData),
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then((r) => {
-                if (r.ok) {
-                    r.json().then((customer) => onLogin(customer));
-                }
-            });
-    }
+    fetch("http://127.0.0.1:5555/login", {
+      method: "POST",
+      body: JSON.stringify(loginFormData),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+      .then((r) => {
+        if (r.ok) {
+          r.json().then(() => {
+            onLogin();
+          });
+        } else {
+          r.json().then((error) => {
+            setLoginError(error.message);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error during login request:", error);
+        setLoginError("Login failed. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  }
 
+  function handleSignup(e) {
+    e.preventDefault();
+    setLoading(true);
+    setSignupError(null); 
 
-    function handleSignup(e){
-        e.preventDefault()
-        fetch('http://127.0.0.1:5555/signup', {
-            method: 'POST',
-            body: JSON.stringify(signupFormData),
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then((r) => {
-                if (r.ok) {
-                    r.json().then((customer) => onLogin(customer));
-                }
-            });
-    }
-
-    function ToggleSignUp(){
-        setIsSignedUp(!isSignedUp)
-    }
+    fetch("http://127.0.0.1:5555/signup", {
+      method: "POST",
+      body: JSON.stringify(signupFormData),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+      .then((r) => {
+        if (r.ok) {
+          r.json().then((customer) => {
+            onLogin(customer);
+          });
+        } else {
+          r.json().then((error) => {
+            setSignupError(error.message);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error during signup request:", error);
+        setSignupError("Signup failed. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  }
 
     const renderSignupForm = () => (
         <form onSubmit={handleSignup}>
@@ -76,7 +104,7 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="username"
                 value={signupFormData.username}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
             <label htmlFor="password">Password</label>
@@ -86,7 +114,7 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="password"
                 value={signupFormData.password}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
             <label htmlFor="name">Name</label>
@@ -96,7 +124,7 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="name"
                 value={signupFormData.name}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
             <label htmlFor="phone_number">Phone Number</label>
@@ -106,7 +134,7 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="phone_number"
                 value={signupFormData.phone_number}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
             <label htmlFor="email">Email</label>
@@ -116,7 +144,7 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="email"
                 value={signupFormData.email}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
             <label htmlFor="address">Address</label>
@@ -126,11 +154,13 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
                 type="text"
                 name="address"
                 value={signupFormData.address}
-                onChange={handleChange}
+                onChange={signupHandleChange}
                 />
             </div>
-            <button type="submit">Sign up now!</button>
-            
+                {signupError && <p style={{ color: "red" }}>{signupError}</p>}
+            <button type="submit" disabled={loading}>
+                {loading ? "Signing up..." : "Sign up now!"}
+            </button>
         </form>
     )
 
@@ -159,7 +189,10 @@ function Login({onLogin, isLoggedIn, isSignedUp, setIsSignedUp}) {
               onChange={handleChange}
             />
           </div>
-          <button type="submit">Login</button>
+            {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+            <button type="submit" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
+            </button>
         </form>
       );
 
@@ -172,8 +205,6 @@ if (!isLoggedIn) {
           {renderSignupForm()}
         </>
       );
-} else {
-    {history.push("/profile")}
 }
 }
 
