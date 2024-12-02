@@ -1,8 +1,18 @@
 import React from "react";
-import App from "./components/App";
 import "./index.css";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Switch, Route } from "react-router-dom";
+import App from "./components/pages/App";
+import Profile from "./components/pages/Profile";
+import CartPage from "./components/pages/CartPage";
+import Login from "./components/pages/Login";
+import ProductPage from "./components/pages/ProductPage"
 
+// Render the application with BrowserRouter and Routes
 const container = document.getElementById("root");
-const root = createRoot(container);
-root.render(<App />);
+const root = ReactDOM.createRoot(container);
+root.render(
+  <App/>
+);
+
+
