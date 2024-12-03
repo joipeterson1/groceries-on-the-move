@@ -3,14 +3,14 @@
 # Standard library imports
 
 # Remote library imports
-from flask import request, session, jsonify, make_response
+from flask import request, session, jsonify
 from flask_restful import Resource
 from datetime import datetime, timezone
 
 # Local imports
 from config import app, db, api
 from flask_cors import cross_origin
-from models import Customer, Product, Order, Cart, CartItem, order_product_table
+from models import Customer, Product, Order, Cart, CartItem
 
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -35,7 +35,7 @@ class Orders(Resource):
     def get(self):
         customer_id = session.get('customer_id')
         if customer_id:
-            orders = Order.query.filter(Order.customer_id == session.get['customer_id'])
+            orders = Order.query.filter(Order.customer_id == customer_id)
             return [order.to_dict() for order in orders], 200
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -106,7 +106,7 @@ class OrderByID(Resource):
         
         return jsonify({'error': 'Order not found'}), 404
     
-class Cart(Resource):
+class CartSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
         customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
@@ -188,6 +188,19 @@ class Cart(Resource):
                 return jsonify(response_dict), 200
         
         return jsonify({'error': 'Your cart is empty.'}), 404
+    
+class CustomerSession(Resource):
+    @cross_origin(origins="http://localhost:3000")
+    def get(self):
+        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
+        if not customer_id:
+            return jsonify({"error": "User not logged in"}), 401
+
+        customer = Customer.query.filter(Customer.id == customer_id).first()
+        if not customer:
+            return jsonify({"message": "No customer profile"}), 200
+
+        return jsonify(customer.to_dict()), 200
 
     
 class ClearSession(Resource):
@@ -216,13 +229,14 @@ class SignUp(Resource):
 class CheckSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
-        print("Session customer_id:", session.get('customer_id'))
+        print("Session customer_id:", session.get('customer_id'))  # Check if the session value is set
         customer_id = session.get('customer_id')
         if customer_id:
             customer = Customer.query.filter(Customer.id == customer_id).first()
             if customer:
-                return jsonify(customer.to_dict(), 200)
+                return jsonify(customer.to_dict()), 200
         return jsonify({'message': '401: Not Authorized'}), 401
+
 
 class Login(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -248,7 +262,8 @@ api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(Orders, '/orders')
-api.add_resource(Cart, '/cart')
+api.add_resource(CartSession, '/cart')
+api.add_resource(CustomerSession, '/customer')
 api.add_resource(ClearSession, '/clear', endpoint="clear")
 api.add_resource(SignUp, '/signup', endpoint="signup")
 api.add_resource(CheckSession, '/check-session', endpoint="check-session")

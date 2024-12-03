@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Switch, Route, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function ProductCard({product, AddToCart}) {
-  
   return (
       <div>
         <img src={product.product_img} alt="product_img"/>

@@ -5,32 +5,51 @@ import ProductList from '../list/products/ProductList';
 import CartPage from '../pages/CartPage';
 import Login from '../pages/Login';
 import Profile from "./Profile";
-import { Link } from "react-router-dom";
 
 function App() {
   const [products, setProducts] = useState([]);
   const [cartData, setCartData] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customer, setCustomer] = useState(null)
   const history = useHistory();
+  const [profileData, setProfileData] = useState(null);
+  const [orders, setOrders] = useState([]);
 
-  useEffect(()=> {
-    fetch('/check-session')
-  .then((r) => {
-    if (!r.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return r.json().catch(() => ({}));
-  })
-  .then((customer) => {
-    if (customer) {
-      setCustomer(customer);
-    }
-  })
-  .catch((error) => {
-    console.error('Fetch error: ', error);
-  });
-}, [])
+  useEffect(() => {
+    fetch("/check-session", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Unauthorized');
+      })
+      .then((data) => {
+        if (data) {
+          setProfileData(data);
+  
+          return fetch("/orders", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+        }
+      })
+      .then((response) => response.json()) 
+      .then((orderData) => {
+          setOrders(orderData || []);
+      })
+      .catch((error) => {
+        console.error('Error during session check or fetching data:', error);
+      });
+  }, []);
+  
   
   useEffect(() => {
     fetch('/products')
@@ -40,96 +59,134 @@ function App() {
 
 
   useEffect(() => {
-    if (isLoggedIn && customer) {
+    if (profileData) {
       fetch('/cart')
         .then((r) => r.json())
         .then((cart) => {
-          if (cart) {
+          if (cart && Array.isArray(cart.items)) {
             setCartData(cart.items); // Assuming cart contains items
+          } else{
+            setCartData([])
           }
         })
         .catch((error) => console.error("Error fetching cart data", error));
     }
-  }, [isLoggedIn, customer])
+  }, [profileData])
 
-   // Add to cart function (optimizing cart state update)
-   function AddToCart(item) {
+  function AddToCart(item) {
+    if (!Array.isArray(cartData)) {
+      console.error("cartData is not an array:", cartData);
+      return;
+    }
+
     const existingItem = cartData.find(cartItem => cartItem.product_id === item.product_id);
+    
     if (existingItem) {
-      // If item already in cart, update quantity
+      // If the item exists, update the quantity
       const updatedCart = cartData.map(cartItem =>
         cartItem.product_id === item.product_id
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
+      
+      // Update the state
       setCartData(updatedCart);
+      
+      // Send a PATCH request to the server to update the cart
+      fetch('/cart', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: item.product_id,
+          quantity: existingItem.quantity + 1,
+        }),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to update the cart');
+        }
+        return response.json();
+      })
+      .then(updatedCartData => {
+        console.log('Cart updated:', updatedCartData);
+      })
+      .catch(error => {
+        console.error('Error updating cart:', error);
+      });
     } else {
-      // Otherwise add new item to cart
-      setCartData([...cartData, { ...item, quantity: 1 }]);
-    }
-  }
-
-  // Update cart on change
-  useEffect(() => {
-    if (cartData.length > 0) {
+      // If the item doesn't exist, add it to the cart
+      const newItem = { ...item, quantity: 1 };
+      const updatedCart = [...cartData, newItem];
+      
+      // Update the state
+      setCartData(updatedCart);
+      
+      // Send a POST request to the server to add the new item to the cart
       fetch('/cart', {
         method: 'POST',
-        body: JSON.stringify({ items: cartData }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: item.product_id,
+          quantity: 1,
+        }),
       })
-        .then((r) => {
-          if (!r.ok) {
-            throw new Error('Error updating cart');
-          }
-        })
-        .catch((error) => console.error("Error updating cart", error));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to add the item to the cart');
+        }
+        return response.json();
+      })
+      .then(newCartData => {
+        console.log('Item added to cart:', newCartData);
+      })
+      .catch(error => {
+        console.error('Error adding item to cart:', error);
+      });
     }
-  }, [cartData]);
+  }
+  
 
   function onLogout() {
-    setIsLoggedIn(false);
+    profileData(null);
     setCartData([]);
     fetch('/logout', { method: 'DELETE' })
       .then(() => {
-        history.push('/login');
+        history.push('/');
       })
       .catch((error) => console.error('Logout failed', error));
   }
 
-
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     history.push('/');
-  //   } else {
-  //     history.push('/login');
-  //   }
-  // }, [isLoggedIn, history]);
-
-
   return (
     <Router>
       <header>
-        {isLoggedIn ? 
+        {profileData ? 
         (<div>
-          <h2>Welcome back, {customer.name}! </h2> 
+          <h2>Welcome back! </h2> 
         </div>) : null}
-        <NavBar cart={cartData} onLogout={onLogout}/>
+        <NavBar cart={cartData} onLogout={onLogout} profileData={profileData}/>
       </header>
       <main>
         <h1>Welcome to Groceries on the Move!</h1>
         <h3>View our Products below.</h3>
        <ProductList products={products} AddToCart={AddToCart}/>
         <Switch>
-          <Route path="/cart"render={ () => (<CartPage customer={customer} cart={cartData} isLoggedIn={isLoggedIn}/>)} />
-          <Route path="/login" render={() => (
-            <Login
-              customer={customer}
-              setCustomer={setCustomer}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
+          <Route path="/cart"render={ () => (<CartPage profileData={profileData} cart={cartData}/>)} />
+          <Route path="/login" render={() => (<Login/>)} />
+          <Route 
+            path="/profile" 
+            render={() => (
+              <Profile 
+                setProfileData={setProfileData} 
+                profileData={profileData} 
+                orders={orders} 
+                setOrders={setOrders} 
               />
-          )} />
-          <Route path="/profile" render= {()=> (<Profile customer={customer} setCustomer={setCustomer} setIsLoggedIn={setIsLoggedIn}/>)} />
+            )} 
+          />
         </Switch>
       </main>
       </Router>

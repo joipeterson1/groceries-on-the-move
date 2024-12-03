@@ -3,8 +3,6 @@ import CartCard from "../cart/CartCard"
 
 
 function CartList({ cartItems }) {
-
-
   return (
     <div>
       {cartItems ?       

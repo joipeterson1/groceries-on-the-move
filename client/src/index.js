@@ -7,18 +7,19 @@ import Profile from "./components/pages/Profile";
 import CartPage from "./components/pages/CartPage";
 import Login from "./components/pages/Login";
 import ProductPage from "./components/pages/ProductPage"
+import OrderDetails from "./components/pages/OrderDetails";
 
-// Render the application with BrowserRouter and Routes
 const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 root.render(
   <BrowserRouter>
-      <Switch> {/* Use Switch instead of Routes in React Router v5 */}
-      <Route exact path="/" component={App} /> {/* Use 'component' prop */}
-      <Route path="/product-page/:id" component={ProductPage} /> {/* Dynamic product page */}
+      <Switch> 
+      <Route exact path="/" component={App} /> 
+      <Route path="/product-page/:id" component={ProductPage} /> 
       <Route path="/profile" component={Profile} />
       <Route path="/cart-page" component={CartPage} />
       <Route path="/login" component={Login} />
+      <Route path="/order" component={OrderDetails} />
     </Switch>
   </BrowserRouter>
 );

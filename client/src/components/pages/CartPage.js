@@ -1,12 +1,11 @@
 import {React, useState} from "react";
 import NavBar from "../NavBar"
 import CartList from "../list/cart/CartList"
-import OrderConfirm from "../OrderConfirm"
 import { Link } from "react-router-dom";
 import {useHistory} from "react-router-dom"
 
 
-function CartPage({ customer, cart, isLoggedIn }) {
+function CartPage({ profileData, cart }) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [error, setError] = useState(null);
   const cartItems = cart || [];
@@ -18,14 +17,14 @@ function CartPage({ customer, cart, isLoggedIn }) {
 
   // Handle new order
   function NewOrder() {
-    if (!isLoggedIn) {
+    if (!profileData) {
       setError("You must be logged in to place an order.");
       return;
     }
 
     // Prepare order data (cart and customer info)
     const orderData = {
-      customer_id: customer.id,
+      customer_id: profileData.id,
       products: cartItems.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
@@ -62,17 +61,17 @@ function CartPage({ customer, cart, isLoggedIn }) {
       <div>
         <h3>Total: ${totalAmount.toFixed(2)}</h3>
       </div>
-      {!isLoggedIn && (
+      {!profileData && (
         <div>
           <Link to="/login">Login/Create your account to order!</Link>
         </div>
       )}
 
-      {isLoggedIn && !orderConfirmed && (
+      {profileData && !orderConfirmed && (
         <button onClick={NewOrder}>Order All Items Now!</button>
       )}
 
-      {orderConfirmed && <OrderConfirm />}
+      {orderConfirmed && <h2> Your Order has been confirmed!</h2>}
 
       {error && <div className="error">{error}</div>}
     </div>
