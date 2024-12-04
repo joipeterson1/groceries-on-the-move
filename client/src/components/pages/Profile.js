@@ -2,9 +2,48 @@ import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import NavBar from "../NavBar"; 
 
-function Profile({ setProfileData, profileData, orders, setOrders }) {
+function Profile({ setCustomer, setIsLoggedIn, isLoggedIn }) {
   const history = useHistory();
-  console.log(profileData)
+  const [profileData, setProfileData] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/check-session", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Unauthorized');
+      })
+      .then((data) => {
+        if (data) {
+          console.log('Profile data:', data);
+          setProfileData(data);
+  
+          return fetch("/orders", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+        }
+      })
+      .then((response) => response.json()) 
+      .then((orderData) => {
+        if (orderData) {
+          console.log('Order data:', orderData);
+          setOrders(orderData || []);
+        }
+      })
+  }, []);
   
   const handleLogout = () => {
     fetch("/logout", {
@@ -15,7 +54,8 @@ function Profile({ setProfileData, profileData, orders, setOrders }) {
     })
       .then((r) => {
         if (r.ok) {
-          setProfileData(null);
+          setIsLoggedIn(false);
+          setCustomer(null);
           history.push("/login");
         }
       })

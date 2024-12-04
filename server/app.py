@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 # Local imports
 from config import app, db, api
 from flask_cors import cross_origin
-from models import Customer, Product, Order, Cart, CartItem
+from models import Customer, Product, Order
 
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -106,89 +106,7 @@ class OrderByID(Resource):
         
         return jsonify({'error': 'Order not found'}), 404
     
-class CartSession(Resource):
-    @cross_origin(origins="http://localhost:3000")
-    def get(self):
-        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
-        if not customer_id:
-            return jsonify({"error": "User not logged in"}), 401
 
-        cart = Cart.query.filter_by(customer_id=customer_id).first()
-        if not cart:
-            return jsonify({"message": "Cart is empty"}), 200
-
-        return jsonify(cart.to_dict()), 200
-    
-    def post(self):
-        data = request.get_json()
-        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
-        product_id = data.get('product_id')
-        quantity = data.get('quantity', 1)
-
-        if not customer_id:
-            return jsonify({"error": "User not logged in"}), 401
-
-        product = Product.query.get(product_id)
-        if not product:
-            return jsonify({"error": "Product not found"}), 404
-
-        cart = Cart.query.filter_by(customer_id=customer_id).first()
-        if not cart:
-            cart = Cart(customer_id=customer_id)
-            db.session.add(cart)
-            db.session.commit()
-
-    # Check if product already exists in the cart
-        cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
-        if cart_item:
-            cart_item.quantity += quantity  # Update quantity
-        else:
-            cart_item = CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
-            db.session.add(cart_item)
-
-        db.session.commit()
-        response = jsonify({"message": "Item added to cart"}), 200
-        print("Response before return:", response)  # Debugging line
-        return response  # Direct return of the response object
-    
-
-    def delete(self):
-        data = request.get_json()
-        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
-        product_id = data.get('product_id')
-
-        if not customer_id:
-            return jsonify({"error": "User not logged in"}), 401
-
-        cart = Cart.query.filter_by(customer_id=customer_id).first()
-        if not cart:
-            return jsonify({"error": "Cart not found"}), 404
-
-        cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
-        if not cart_item:
-            return jsonify({"error": "Item not in cart"}), 404
-
-        db.session.delete(cart_item)
-        db.session.commit()
-        return jsonify({"message": "Item removed from cart"}), 200
-
-    def patch(self):
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            return jsonify({'error': 'Customer not logged in'}), 401
-        cart = Cart.query.filter_by(customer_id=customer_id).first()
-        if cart:
-                for attr in request.form:
-                    setattr(cart, attr, request.form[attr])
-        
-                db.session.add(cart)
-                db.session.commit() 
-
-                response_dict = cart.to_dict()
-                return jsonify(response_dict), 200
-        
-        return jsonify({'error': 'Your cart is empty.'}), 404
-    
 class CustomerSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
@@ -262,7 +180,6 @@ api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(Orders, '/orders')
-api.add_resource(CartSession, '/cart')
 api.add_resource(CustomerSession, '/customer')
 api.add_resource(ClearSession, '/clear', endpoint="clear")
 api.add_resource(SignUp, '/signup', endpoint="signup")

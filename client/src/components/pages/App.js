@@ -55,103 +55,22 @@ function App() {
     fetch('/products')
     .then((r) => r.json())
     .then((products) => setProducts(products))
-  }, []);
-
-
-  useEffect(() => {
-    if (profileData) {
-      fetch('/cart')
-        .then((r) => r.json())
-        .then((cart) => {
-          if (cart && Array.isArray(cart.items)) {
-            setCartData(cart.items); // Assuming cart contains items
-          } else{
-            setCartData([])
-          }
-        })
-        .catch((error) => console.error("Error fetching cart data", error));
-    }
-  }, [profileData])
-
-  function AddToCart(item) {
-    if (!Array.isArray(cartData)) {
-      console.error("cartData is not an array:", cartData);
-      return;
-    }
-
-    const existingItem = cartData.find(cartItem => cartItem.product_id === item.product_id);
-    
-    if (existingItem) {
-      // If the item exists, update the quantity
-      const updatedCart = cartData.map(cartItem =>
-        cartItem.product_id === item.product_id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
+  }, []); 
       
-      // Update the state
-      setCartData(updatedCart);
-      
-      // Send a PATCH request to the server to update the cart
-      fetch('/cart', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: item.product_id,
-          quantity: existingItem.quantity + 1,
-        }),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to update the cart');
-        }
-        return response.json();
-      })
-      .then(updatedCartData => {
-        console.log('Cart updated:', updatedCartData);
-      })
-      .catch(error => {
-        console.error('Error updating cart:', error);
-      });
+  function AddToCart(product) {
+    if (profileData){
+      if (cartData){
+        setCartData([...cartData, product])
+      } else {
+        setCartData(product)
+      }
     } else {
-      // If the item doesn't exist, add it to the cart
-      const newItem = { ...item, quantity: 1 };
-      const updatedCart = [...cartData, newItem];
-      
-      // Update the state
-      setCartData(updatedCart);
-      
-      // Send a POST request to the server to add the new item to the cart
-      fetch('/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: item.product_id,
-          quantity: 1,
-        }),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to add the item to the cart');
-        }
-        return response.json();
-      })
-      .then(newCartData => {
-        console.log('Item added to cart:', newCartData);
-      })
-      .catch(error => {
-        console.error('Error adding item to cart:', error);
-      });
+      return <h4> Please Login!</h4>
     }
-  }
-  
+      }
 
   function onLogout() {
-    profileData(null);
+    setProfileData(null);
     setCartData([]);
     fetch('/logout', { method: 'DELETE' })
       .then(() => {
@@ -163,10 +82,6 @@ function App() {
   return (
     <Router>
       <header>
-        {profileData ? 
-        (<div>
-          <h2>Welcome back! </h2> 
-        </div>) : null}
         <NavBar cart={cartData} onLogout={onLogout} profileData={profileData}/>
       </header>
       <main>
