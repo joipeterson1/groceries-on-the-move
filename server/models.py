@@ -45,8 +45,10 @@ class Customer(db.Model, SerializerMixin):
         existing_username = db.session.query(Customer).filter(Customer.username == username).first()
         if existing_username:
             raise ValueError ("Username already in use.")
+        if username == None:
+            raise ValueError ("Username cannot be None.")
         if len(username) == 0:
-            raise ValueError ("Username must be a non empty string.")
+            raise ValueError("Username must be a non-empty string.")
         return username
     
     @hybrid_property

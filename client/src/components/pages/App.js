@@ -31,7 +31,7 @@ function App() {
       .then((data) => {
         if (data) {
           setProfileData(data);
-  
+
           return fetch("/orders", {
             method: "GET",
             headers: {
@@ -49,7 +49,6 @@ function App() {
         console.error('Error during session check or fetching data:', error);
       });
   }, []);
-  
   
   useEffect(() => {
     fetch('/products')
@@ -89,8 +88,14 @@ function App() {
         <h3>View our Products below.</h3>
        <ProductList products={products} AddToCart={AddToCart}/>
         <Switch>
-          <Route path="/cart"render={ () => (<CartPage profileData={profileData} cart={cartData}/>)} />
-          <Route path="/login" render={() => (<Login/>)} />
+          <Route 
+          path="/cart-page"
+            render={ () => (
+              <CartPage 
+                setProfileData={setProfileData} 
+                profileData={profileData} 
+                setCartData={setCartData} 
+                cartData={cartData}/>)} />
           <Route 
             path="/profile" 
             render={() => (
@@ -98,8 +103,7 @@ function App() {
                 setProfileData={setProfileData} 
                 profileData={profileData} 
                 orders={orders} 
-                setOrders={setOrders} 
-              />
+                setOrders={setOrders} />
             )} 
           />
         </Switch>

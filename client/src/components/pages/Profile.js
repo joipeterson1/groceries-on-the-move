@@ -8,6 +8,7 @@ function Profile({ setCustomer, setIsLoggedIn, isLoggedIn }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     fetch("/check-session", {
       method: "GET",

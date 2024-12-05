@@ -1,19 +1,39 @@
-import {React, useState} from "react";
+import {React, useState, useEffect} from "react";
 import NavBar from "../NavBar"
 import CartList from "../list/cart/CartList"
 import { Link } from "react-router-dom";
 import {useHistory} from "react-router-dom"
 
 
-function CartPage({ profileData, cart }) {
+function CartPage({ profileData, setProfileData, cartData, setCartData }) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [error, setError] = useState(null);
-  const cartItems = cart || [];
+  const cartItems = cartData || []
   const totalAmount = cartItems.reduce((total, cartItem) => {
     return total + (cartItem.product.price * cartItem.quantity);
   }, 0);
   
   const history = useHistory();
+  console.log('setProfileData:', setProfileData);
+
+
+  useEffect(() => {
+    fetch("/check-session")
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Unauthorized');
+      })
+      .then((data) => {
+        if (data) {
+          setProfileData(data);  // This should work if setProfileData is correctly passed as a prop
+        }
+      })
+      .catch((error) => {
+        console.error("Error during session check:", error);
+      });
+  }, [setProfileData]);
 
   // Handle new order
   function NewOrder() {
@@ -25,7 +45,7 @@ function CartPage({ profileData, cart }) {
     // Prepare order data (cart and customer info)
     const orderData = {
       customer_id: profileData.id,
-      products: cartItems.map(item => ({
+      products: cartData.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
       })),
@@ -57,11 +77,11 @@ function CartPage({ profileData, cart }) {
         <NavBar />
       </header>
       <h2>Your Cart</h2>
-      <CartList cart={cartItems}/>
+      <CartList cart={cartData}/>
       <div>
         <h3>Total: ${totalAmount.toFixed(2)}</h3>
       </div>
-      {!profileData && (
+      {profileData ? null : (
         <div>
           <Link to="/login">Login/Create your account to order!</Link>
         </div>

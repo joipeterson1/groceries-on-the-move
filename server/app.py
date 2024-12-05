@@ -127,13 +127,24 @@ class ClearSession(Resource):
         session['page_views'] = None
         session['customer_id'] = None
         return jsonify({}), 204
+    
+@app.before_request
+def check_if_logged_in():
+    open_access_list = [
+        'signup',
+        'login',
+        'check_session'
+    ]
+
+    if (request.endpoint) not in open_access_list and (not session.get('customer_id')):
+        return {'error': '401 Unauthorized'}, 401
 
 class SignUp(Resource):
     @cross_origin(origins="http://localhost:3000")
     def post(self):
         json = request.json
         customer = Customer(
-            username=json['username']
+            username=json.get('username')
         )
         customer.password_hash = json['password']
         customer.name = json['name']
@@ -142,13 +153,15 @@ class SignUp(Resource):
         customer.address = json['address']
         db.session.add(customer)
         db.session.commit()
-        return jsonify(customer.to_dict(), 201)
+        return jsonify(customer.to_dict()), 201
 
 class CheckSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
-        print("Session customer_id:", session.get('customer_id'))  # Check if the session value is set
-        customer_id = session.get('customer_id')
+        print("session after login:", session.get('customer_id'))
+        customer_id = session['customer_id'] - 1
+        print("Session customer_id:", session.get('customer_id'))
+
         if customer_id:
             customer = Customer.query.filter(Customer.id == customer_id).first()
             if customer:
@@ -166,8 +179,9 @@ class Login(Resource):
         if customer and customer.authenticate(password):
             session['customer_id'] = customer.id
             print("Session customer_id:", session.get('customer_id'))
-            return jsonify(customer.to_dict(), 200)
+            return jsonify(customer.to_dict()), 200
         return jsonify({'error': 'Invalid username or password'}), 401
+        
 
 class Logout(Resource):
     @cross_origin(origins="http://localhost:3000")

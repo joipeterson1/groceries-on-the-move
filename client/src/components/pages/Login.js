@@ -5,121 +5,122 @@ import {useHistory} from "react-router-dom"
 import {useFormik} from "formik"
 import * as yup from "yup"
 
-function Login() {
+function Login({customer, setCustomer, setIsLoggedIn, isLoggedIn}) {
     const history = useHistory()
+    const [loginFormData, setLoginFormData] = useState({
+        username: "",
+        password: ""
+    })
+    const [signupFormData, setSignupFormData] = useState({
+        username: "",
+        password: "",
+        name: "",
+        phone_number: "",
+        email: "",
+        address: ""
+    })
     const [loginError, setLoginError] = useState(null)
     const [signupError, setSignupError] = useState(null)
     const [loading, setLoading] = useState(false);
 
     function onLogin(){
+        setCustomer(customer)
+        console.log(customer)
+        setIsLoggedIn(true)
+        console.log(isLoggedIn)
         history.push("/profile")
       }
 
-      const loginFormSchema = yup.object().shape({
-        username: yup.string().required("Must enter username"),
-        password: yup.string().required("Must enter password")
-      })
-      
-      const loginFormik = useFormik({
-        initialValues: {
-          username: "",
-          password: ""
-        },
-        validationSchema: loginFormSchema,
-        onSubmit: (values) => {
-        fetch("/login", {
-            method: "POST",
-            body: JSON.stringify(values),
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          })
-            .then((r) => {
-              if (r.ok) {
-                r.json().then(() => {
-                  onLogin();
-                });
-              } else {
-                r.json().then((error) => {
-                  setLoginError(error.message);
-                });
-              }
-            })
-            .catch((error) => {
-              console.error("Error during login request:", error);
-              setLoginError("Login failed. Please try again.");
-            })
-            .finally(() => setLoading(false));
+    function signupHandleChange(e){
+        setSignupFormData({
+            ...signupFormData,
+            [e.target.name]: e.target.value,
+        })
+    }
+
+    function handleChange(e){
+        setLoginFormData({
+            ...loginFormData,
+            [e.target.name]: e.target.value,
+        })
+    }
+
+    function handleLogin(e) {
+    fetch("/login", {
+      method: "POST",
+      body: JSON.stringify(loginFormData),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+      .then((r) => {
+        if (r.ok) {
+          r.json().then(() => {
+            onLogin();
+          });
+        } else {
+          r.json().then((error) => {
+            setLoginError(error.message);
+          });
         }
       })
-
-  const signupFormSchema = yup.object().shape({
-    signup_username: yup.string().required("Must enter username"),
-    signup_password: yup.string().required("Must enter password"),
-    name: yup.string().required("Must enter name").max(75),
-    phone_number: yup.number().positive().integer().required("Must enter phone number").typeError("Please enter a 10 digit integer").max(10),
-    email: yup.string().email("Invalid email").required("Must enter email"),
-    address: yup.string().required("Must enter address")
-  })
-  
-  const signupFormik = useFormik({
-    initialValues: {
-      signup_username: "",
-      signup_password: "",
-      name: "",
-      phone_number: "",
-      email: "",
-      address: ""
-    },
-    validationSchema: signupFormSchema,
-    onSubmit: (values) => {
-      fetch("/signup", {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      .catch((error) => {
+        console.error("Error during login request:", error);
+        setLoginError("Login failed. Please try again.");
       })
-        .then((r) => {
-          if (r.ok) {
-            r.json().then((customer) => {
-              onLogin(customer);
-            });
-          } else {
-            r.json().then((error) => {
-              setSignupError(error.message);
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error during signup request:", error);
-          setSignupError("Signup failed. Please try again.");
-        })
-        .finally(() => setLoading(false));
-    }
-  })
+      .finally(() => setLoading(false));
+  }
+
+  function handleSignup(e) {
+    e.preventDefault();
+    setLoading(true);
+    setSignupError(null); 
+
+    fetch("/signup", {
+      method: "POST",
+      body: JSON.stringify(signupFormData),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+      .then((r) => {
+        if (r.ok) {
+          r.json().then((customer) => {
+            onLogin(customer);
+          });
+        } else {
+          r.json().then((error) => {
+            setSignupError(error.message);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error during signup request:", error);
+        setSignupError("Signup failed. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  }
+
 
     const renderSignupForm = () => (
-        <form onSubmit={signupFormik.handleSubmit}>
+        <form onSubmit={handleSignup}>
             <label htmlFor="username">Username</label>
             <div>
                 <input
-                id="signup_username"
+                id="signup-username"
                 type="text"
                 name="username"
-                value={signupFormik.values.signup_username}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.username}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.username}</p>
             </div>
             <label htmlFor="password">Password</label>
             <div>
                 <input
-                id="signup_password"
+                id="signup-password"
                 type="text"
                 name="password"
-                value={signupFormik.values.signup_password}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.password}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.password}</p>
             </div>
             <label htmlFor="name">Name</label>
             <div>
@@ -127,10 +128,9 @@ function Login() {
                 id="name"
                 type="text"
                 name="name"
-                value={signupFormik.values.name}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.name}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.name}</p>
             </div>
             <label htmlFor="phone_number">Phone Number</label>
             <div>
@@ -138,10 +138,9 @@ function Login() {
                 id="phone_number"
                 type="text"
                 name="phone_number"
-                value={signupFormik.values.phone_number}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.phone_number}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.phone_number}</p>
             </div>
             <label htmlFor="email">Email</label>
             <div>
@@ -149,10 +148,9 @@ function Login() {
                 id="email"
                 type="text"
                 name="email"
-                value={signupFormik.values.email}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.email}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.email}</p>
             </div>
             <label htmlFor="address">Address</label>
             <div>
@@ -160,10 +158,9 @@ function Login() {
                 id="address"
                 type="text"
                 name="address"
-                value={signupFormik.values.address}
-                onChange={signupFormik.handleChange}
+                value={signupFormData.address}
+                onChange={signupHandleChange}
                 />
-                <p style={{color: "red"}}> {signupFormik.errors.address}</p>
             </div>
                 {signupError && <p style={{ color: "red" }}>{signupError}</p>}
             <button type="submit" disabled={loading}>
@@ -173,7 +170,7 @@ function Login() {
     )
 
     const renderLoginForm = () => (
-        <form onSubmit={loginFormik.handleSubmit}>
+        <form onSubmit={handleLogin}>
           <header>
             <NavBar />
           </header>
@@ -183,10 +180,9 @@ function Login() {
               id="username"
               type="text"
               name="username"
-              value={loginFormik.values.username}
-              onChange={loginFormik.handleChange}
+              value={loginFormData.username}
+              onChange={handleChange}
             />
-            <p style={{ color: "red" }}> {loginFormik.errors.username}</p>
           </div>
           <label htmlFor="password">Password</label>
           <div>
@@ -194,10 +190,9 @@ function Login() {
               id="password"
               type="password"
               name="password"
-              value={loginFormik.values.password}
-              onChange={loginFormik.handleChange}
+              value={loginFormData.password}
+              onChange={handleChange}
             />
-            <p style={{ color: "red" }}> {loginFormik.errors.password}</p>
           </div>
             {loginError && <p style={{ color: "red" }}>{loginError}</p>}
             <button type="submit" disabled={loading}>
@@ -206,6 +201,8 @@ function Login() {
         </form>
       );
 
+
+if (!isLoggedIn) {
     return (
         <>
           {renderLoginForm()}
@@ -213,6 +210,7 @@ function Login() {
           {renderSignupForm()}
         </>
       );
+}
 }
 
 export default Login;
