@@ -1,20 +1,37 @@
-import { NavLink } from "react-router-dom";
+import { Link , useHistory } from "react-router-dom";
 import "./NavBar.css";
+import {useCart} from "../components/CartContext"
 
-function NavBar({cart, profileData, onLogout}){
-    const cartCount = cart ? cart.length : 0
 
+function NavBar({/*cartData,*/ profileData,setProfileData/*, onLogout*/}){
+    const { totalItems } = useCart(); 
+    const history = useHistory()
+
+    function onLogout() {
+        setProfileData(null);
+        // setCartData([]);
+        fetch('/logout', { method: 'DELETE' })
+          .then(() => {
+            history.push('/');
+          })
+          .catch((error) => console.error('Logout failed', error));
+      }
     return (
         <nav>
-            <NavLink to="/" exact activeClassName="active-link">Home</NavLink>
-            <NavLink to="/profile" activeClassName="active-link">Profile</NavLink>
-            <NavLink to="/cart-page" activeClassName="active-link">Cart {cartCount}</NavLink>
-            {profileData ? null : <NavLink to="/login" activeClassName="active-link">Login</NavLink>}
-            <div>
-            { profileData ? <button onClick={onLogout}>Logout</button> : null}
-            </div>
+          <div>
+            <Link to="/">Home</Link>
+            <Link to="/cart-page">Cart: {totalItems}</Link>
+            <Link to="/profile">Profile</Link>
+          </div>
+          <div>
+            {profileData ? (
+              <button onClick={onLogout}>Logout</button>
+            ) : (
+              <Link to="/login">Login</Link>
+            )}
+          </div>
         </nav>
-    )
+      );
 }
 
 export default NavBar

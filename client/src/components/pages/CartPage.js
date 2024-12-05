@@ -1,21 +1,21 @@
 import {React, useState, useEffect} from "react";
 import NavBar from "../NavBar"
-import CartList from "../list/cart/CartList"
 import { Link } from "react-router-dom";
-import {useHistory} from "react-router-dom"
+// import {useHistory} from "react-router-dom"
+import {useCart} from "../CartContext"
 
 
-function CartPage({ profileData, setProfileData, cartData, setCartData }) {
+function CartPage(/*{cartData}*/) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
+  const { cartData, totalItems, removeFromCart } = useCart();
   const cartItems = cartData || []
-  const totalAmount = cartItems.reduce((total, cartItem) => {
-    return total + (cartItem.product.price * cartItem.quantity);
-  }, 0);
+  const totalAmount = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
   
-  const history = useHistory();
-  console.log('setProfileData:', setProfileData);
+  // const history = useHistory();
 
+  console.log('cartData:', cartData);
 
   useEffect(() => {
     fetch("/check-session")
@@ -73,14 +73,26 @@ function CartPage({ profileData, setProfileData, cartData, setCartData }) {
 
   return (
     <div>
-      <header>
+      {/* <header>
         <NavBar />
-      </header>
-      <h2>Your Cart</h2>
-      <CartList cart={cartData}/>
+      </header> */}
       <div>
-        <h3>Total: ${totalAmount.toFixed(2)}</h3>
-      </div>
+      <h2>Your Cart</h2>
+      {cartData.length === 0 ? (
+        <p>Your cart is empty!</p>
+      ) : (
+        <div>
+          {cartData.map((item) => (
+            <div key={item.product.id}>
+              <h3>{item.product.product_name}</h3>
+              <p>${item.product.price} x {item.quantity}</p>
+              <button onClick={() => removeFromCart(item.product.id)}>Remove</button>
+            </div>
+          ))}
+          <h3>Total: ${totalAmount.toFixed(2)}</h3>
+        </div>
+      )}
+    </div>
       {profileData ? null : (
         <div>
           <Link to="/login">Login/Create your account to order!</Link>

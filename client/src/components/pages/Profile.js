@@ -6,7 +6,7 @@ function Profile({ setCustomer, setIsLoggedIn, isLoggedIn }) {
   const history = useHistory();
   const [profileData, setProfileData] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
