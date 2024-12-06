@@ -15,9 +15,14 @@ import secrets
 
 # Instantiate app, set attributes
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '\xc0\xc1\xc8\x162v\x13;\xc6\x8a=\x9cgp\x86\x95'
+app.config['SECRET_KEY'] = '77e5b596baea531cbd5907c232ab724bbd5aef5b4b0da7792c5899b5ceca4a1f2b735f3c78bedeb83e5ea39e7aa5ce4a23ba3b3bf07091ed8b9df9c5612b59da'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_NAME'] = 'session'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_PERMANENT'] = True  # This ensures the session persists between requests
+
 app.json.compact = False
 
 # Define metadata, instantiate db

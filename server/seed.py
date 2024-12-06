@@ -24,38 +24,38 @@ if __name__ == '__main__':
         print("Creating Customers...")
 
         # Create customers
-        password_hash = generate_password_hash("mynameisjane")
+        # password_hash = generate_password_hash("mynameisjane")
         c1 = Customer(
             name="Jane Doe", 
-            username="janedoe1234",
-            password_hash="mynameisjane",
+            # username="janedoe1234",
+            # password_hash="mynameisjane",
             phone_number="8504463222",
             email="janedoe@gmail.com",
             address="112 Love Dr Atlanta, GA 33234")
         
-        password_hash = generate_password_hash("austin100")
+        # password_hash = generate_password_hash("austin100")
         c2 = Customer(
             name="Austin Powers",
-            username="austin100",
-            password_hash="mynameisaustin",
+            # username="austin100",
+            # password_hash="mynameisaustin",
             phone_number="8502232222",
             email="austinnn@gmail.com",
             address="999 Powers Lane Atlanta, GA 33204")
         
-        password_hash = generate_password_hash("davisa12")
+        # password_hash = generate_password_hash("davisa12")
         c3 = Customer(
             name="Ashton Davis",
-            username="davisa12",
-            password_hash="mynameisashton", 
+            # username="davisa12",
+            # password_hash="mynameisashton", 
             phone_number="8501234567",
             email="davisa@gmail.com",
             address="89 Cookie Lane Tallahassee, FL 33234")
         
-        password_hash = generate_password_hash("carter55")
+        # password_hash = generate_password_hash("carter55")
         c4 = Customer(
             name="Ashley Carter",
-            username="carter55",
-            password_hash="mynameisash", 
+            # username="carter55",
+            # password_hash="mynameisash", 
             phone_number="2230098877",
             email="carterashley@yahoo.com",
             address="999 Warner Way Jacksonville, FL 33344")

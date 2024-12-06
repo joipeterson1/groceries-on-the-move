@@ -20,8 +20,8 @@ class Customer(db.Model, SerializerMixin):
     serialize_rules = ('-orders.customer', '-orders.products') 
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    _password_hash = db.Column(db.String, nullable=False)
+    # username = db.Column(db.String, nullable=False, unique=True)
+    # _password_hash = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     phone_number = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
@@ -32,38 +32,38 @@ class Customer(db.Model, SerializerMixin):
     def to_dict(self):
         return {
             "id": self.id,
-            "username": self.username,
-            "_password_hash": self._password_hash,
+            # "username": self.username,
+            # "_password_hash": self._password_hash,
             "name": self.name,
             "phone_number": self.phone_number,
             "email": self.email,
             "address": self.address
             }
 
-    @validates('username')
-    def validate_username(self, key, username):
-        existing_username = db.session.query(Customer).filter(Customer.username == username).first()
-        if existing_username:
-            raise ValueError ("Username already in use.")
-        if username == None:
-            raise ValueError ("Username cannot be None.")
-        if len(username) == 0:
-            raise ValueError("Username must be a non-empty string.")
-        return username
+    # @validates('username')
+    # def validate_username(self, key, username):
+    #     existing_username = db.session.query(Customer).filter(Customer.username == username).first()
+    #     if existing_username:
+    #         raise ValueError ("Username already in use.")
+    #     if username == None:
+    #         raise ValueError ("Username cannot be None.")
+    #     if len(username) == 0:
+    #         raise ValueError("Username must be a non-empty string.")
+    #     return username
     
-    @hybrid_property
-    def password_hash(self):
-        return self._password_hash
+    # @hybrid_property
+    # def password_hash(self):
+    #     return self._password_hash
     
-    @password_hash.setter
-    def password_hash(self, password):
-        password_hash = bcrypt.generate_password_hash(
-            password.encode('utf-8'))
-        self._password_hash = password_hash.decode('utf-8')
+    # @password_hash.setter
+    # def password_hash(self, password):
+    #     password_hash = bcrypt.generate_password_hash(
+    #         password.encode('utf-8'))
+    #     self._password_hash = password_hash.decode('utf-8')
 
-    def authenticate(self, password):
-        return bcrypt.check_password_hash(
-            self._password_hash, password.encode('utf-8'))
+    # def authenticate(self, password):
+    #     return bcrypt.check_password_hash(
+    #         self._password_hash, password.encode('utf-8'))
 
     @validates('name')
     def validate_name(self, key, name):
