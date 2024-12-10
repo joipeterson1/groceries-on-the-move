@@ -1,57 +1,41 @@
 import {React, useState, useEffect} from "react";
-import NavBar from "../NavBar"
 import { Link } from "react-router-dom";
-// import {useHistory} from "react-router-dom"
-import {useCart} from "../CartContext"
 
-
-function CartPage(/*{cartData}*/) {
+function CartPage({ profileData, setProfileData, cartData, setCartData, orders, setOrders }) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
-  const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
-  const { cartData, totalItems, removeFromCart } = useCart();
-  const cartItems = cartData || []
-  const totalAmount = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const totalAmount = cartData.reduce((total, cartItem) => {
+    return total + (cartItem.price * cartItem.quantity);
+  }, 0);
   
-  // const history = useHistory();
-
   console.log('cartData:', cartData);
 
   useEffect(() => {
-    fetch("/check-session")
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error('Unauthorized');
-      })
-      .then((data) => {
-        if (data) {
-          setProfileData(data);  // This should work if setProfileData is correctly passed as a prop
-        }
-      })
+    fetch('/check-session')
+      .then((r) => r.json())
+      .then((customer) => 
+          setProfileData(customer)
+      )
       .catch((error) => {
-        console.error("Error during session check:", error);
+        console.error('Error fetching products:', error);
+        setProfileData({})
       });
-  }, [setProfileData]);
+  }, []);
 
-  // Handle new order
   function NewOrder() {
     if (!profileData) {
       setError("You must be logged in to place an order.");
       return;
     }
-
-    // Prepare order data (cart and customer info)
     const orderData = {
       customer_id: profileData.id,
+      order_total: totalAmount,
       products: cartData.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
       })),
     };
 
-    // Make a POST request to create the order
     fetch('/orders', {
       method: 'POST',
       body: JSON.stringify(orderData),
@@ -63,6 +47,7 @@ function CartPage(/*{cartData}*/) {
           setError(data.error);
         } else {
           setOrderConfirmed(true);
+          handleOrder(data)
         }
       })
       .catch((err) => {
@@ -71,28 +56,53 @@ function CartPage(/*{cartData}*/) {
       });
   }
 
+  const handleRemoveFromCart = (productId) => {
+    setCartData((prevCartData) => {
+      const product = prevCartData.find(item => item.id === productId);
+  
+      if (product) {
+        if (product.quantity > 1) {
+          return prevCartData.map(item =>
+            item.id === productId
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
+          );
+        } else {
+          return prevCartData.filter(item => item.id !== productId);
+        }
+      }
+      return prevCartData;
+    });
+  };
+
+function handleOrder(data){
+  const newOrders = [...orders, data]
+  setOrders(newOrders)
+}
+
   return (
     <div>
-      {/* <header>
-        <NavBar />
-      </header> */}
-      <div>
-      <h2>Your Cart</h2>
       {cartData.length === 0 ? (
-        <p>Your cart is empty!</p>
-      ) : (
-        <div>
-          {cartData.map((item) => (
-            <div key={item.product.id}>
-              <h3>{item.product.product_name}</h3>
-              <p>${item.product.price} x {item.quantity}</p>
-              <button onClick={() => removeFromCart(item.product.id)}>Remove</button>
-            </div>
-          ))}
-          <h3>Total: ${totalAmount.toFixed(2)}</h3>
-        </div>
-      )}
+    <div>
+    <h2>Your Cart is Empty!</h2>
     </div>
+    ) : (
+    <div>
+    <h2>Your Cart</h2>
+    {cartData.map((cartItem) => (
+      <div key={cartItem.id} className="cart-card">
+        <img src={cartItem.product_img} alt={cartItem.product_name} />
+        <h3>{cartItem.product_name}</h3>
+        <p>${cartItem.price}</p>
+        <p>Quantity: {cartItem.quantity}</p>
+        <button onClick={() => handleRemoveFromCart(cartItem.id)}>Remove</button>
+    </div>
+    ))}
+    <div>
+      <h3>Total: ${totalAmount.toFixed(2)}</h3>
+    </div>
+    </div>
+    )}
       {profileData ? null : (
         <div>
           <Link to="/login">Login/Create your account to order!</Link>

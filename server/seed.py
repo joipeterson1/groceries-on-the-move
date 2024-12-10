@@ -24,42 +24,51 @@ if __name__ == '__main__':
         print("Creating Customers...")
 
         # Create customers
-        # password_hash = generate_password_hash("mynameisjane")
+        password_hash = generate_password_hash("mynameisjane")
         c1 = Customer(
             name="Jane Doe", 
-            # username="janedoe1234",
-            # password_hash="mynameisjane",
+            username="janedoe1234",
+            password_hash="mynameisjane",
             phone_number="8504463222",
             email="janedoe@gmail.com",
             address="112 Love Dr Atlanta, GA 33234")
         
-        # password_hash = generate_password_hash("austin100")
+        password_hash = generate_password_hash("austin100")
         c2 = Customer(
             name="Austin Powers",
-            # username="austin100",
-            # password_hash="mynameisaustin",
+            username="austin100",
+            password_hash="mynameisaustin",
             phone_number="8502232222",
             email="austinnn@gmail.com",
             address="999 Powers Lane Atlanta, GA 33204")
         
-        # password_hash = generate_password_hash("davisa12")
+        password_hash = generate_password_hash("davisa12")
         c3 = Customer(
             name="Ashton Davis",
-            # username="davisa12",
-            # password_hash="mynameisashton", 
+            username="davisa12",
+            password_hash="mynameisashton", 
             phone_number="8501234567",
             email="davisa@gmail.com",
             address="89 Cookie Lane Tallahassee, FL 33234")
         
-        # password_hash = generate_password_hash("carter55")
+        password_hash = generate_password_hash("carter55")
         c4 = Customer(
             name="Ashley Carter",
-            # username="carter55",
-            # password_hash="mynameisash", 
+            username="carter55",
+            password_hash="mynameisash", 
             phone_number="2230098877",
             email="carterashley@yahoo.com",
             address="999 Warner Way Jacksonville, FL 33344")
-        db.session.add_all([c1, c2, c3, c4])
+        
+        password_hash = generate_password_hash("petersonjoi")
+        c5 = Customer(
+            name="Dalecia Peterson",
+            username="petersonjoi",
+            password_hash="joipeterson1", 
+            phone_number="2231124423",
+            email="petersonjoi@yahoo.com",
+            address="999 Jackson St Jacksonville, FL 33344")
+        db.session.add_all([c1, c2, c3, c4, c5])
         db.session.commit()
             
         print("Creating Products...")
@@ -88,16 +97,21 @@ if __name__ == '__main__':
         order_total=order_totals([p1, p2]), customer_id=c1.id)
         o2 = Order(order_date=datetime.datetime(2024, 11, 15),
         order_total=order_totals([p1, p6]), customer_id=c3.id)
+        o3 = Order(order_date=datetime.datetime(2024, 11, 25),
+        order_total=order_totals([p2, p6]), customer_id=c5.id)
 
         # Add products to orders
         o1.products.append(p1)
         o1.products.append(p2)
         o2.products.append(p1)
         o2.products.append(p6)
+        o3.products.append(p2)
+        o3.products.append(p6)
 
         # Add orders to session
         db.session.add(o1)
         db.session.add(o2)
+        db.session.add(o3)
 
         db.session.commit()
 
