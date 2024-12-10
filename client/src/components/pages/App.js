@@ -72,13 +72,13 @@ function App() {
   return(
   <Router>
     <header>
-          <NavBar cartData={cartData} profileData={profileData} onLogout={onLogout}/>
+          <NavBar setProfileData={setProfileData} cartData={cartData} profileData={profileData} onLogout={onLogout}/>
     </header>
     <Route path="/" exact render={() => <Home products={products} AddToCart={AddToCart}/>} />
     <Route path="/login" render={() => <LoginSignUp profileData={profileData} setProfileData={setProfileData}/>} />
     <Route path="/cart-page" render={() => <CartPage cartData={cartData} setCartData={setCartData} 
     profileData={profileData} setProfileData={setProfileData} orders={orders} setOrders={setOrders}/>} />
-    <Route path="/profile" render={() => <Profile orders={orders} profileData={profileData}/>} />
+    <Route path="/profile" render={() => <Profile setOrders={setOrders} orders={orders} profileData={profileData} setProfileData={setProfileData}/>} />
   </Router>
   )
 }

@@ -1,8 +1,32 @@
-import React from "react";
+import React, {useEffect} from "react";
 import "../../index.css"
 
 
-function Profile({orders, profileData}) {
+function Profile({orders, setOrders, profileData, setProfileData}) {
+
+    useEffect(() => {
+        fetch('/check-session')
+          .then((r) => r.json())
+          .then((customer) => 
+              setProfileData(customer)
+          )
+          .catch((error) => {
+            console.error('Error fetching products:', error);
+            setProfileData({})
+          });
+      }, [setProfileData]);
+
+      useEffect(()=> {
+        fetch('/orders')
+        .then((r)=> r.json())
+        .then((orders)=> 
+            setOrders(orders)
+        )
+        .catch((error) => {
+          console.error('Error fetching orders:', error);
+          setOrders([]);
+        })
+      }, [setOrders])
 
     return(
         <div>

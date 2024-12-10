@@ -50,7 +50,7 @@ function LoginSignUp({setProfileData, profileData}) {
                 if (res.status === 200) {
                     setRefreshPage(!refreshPage)
                     setProfileData(res)
-                    history("/profile")
+                    history.push("/profile")
                 }
             })
         }
@@ -77,7 +77,7 @@ function LoginSignUp({setProfileData, profileData}) {
                 if (res.status === 200) {
                     setRefreshPage(!refreshPage)
                     setProfileData(res)
-                    history("/profile")
+                    history.push("/profile")
                 }
             })
         }
