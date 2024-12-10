@@ -20,7 +20,7 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
         console.error('Error fetching products:', error);
         setProfileData({})
       });
-  }, []);
+  }, [setProfileData]);
 
   function NewOrder() {
     if (!profileData) {
@@ -31,9 +31,10 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
       customer_id: profileData.id,
       order_total: totalAmount,
       products: cartData.map(item => ({
-        product_id: item.product.id,
+        product: item,
         quantity: item.quantity,
       })),
+      
     };
 
     fetch('/orders', {
@@ -46,6 +47,7 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
         if (data.error) {
           setError(data.error);
         } else {
+          console.log(data)
           setOrderConfirmed(true);
           handleOrder(data)
         }
@@ -80,6 +82,7 @@ function handleOrder(data){
   setOrders(newOrders)
 }
 
+
   return (
     <div>
       {cartData.length === 0 ? (
@@ -109,7 +112,7 @@ function handleOrder(data){
         </div>
       )}
 
-      {profileData && !orderConfirmed && (
+      {profileData && !orderConfirmed && cartData && (
         <button onClick={NewOrder}>Order All Items Now!</button>
       )}
 

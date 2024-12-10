@@ -35,7 +35,6 @@ class Orders(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
         customer_id = session.get('customer_id')
-        # customer_id = 1
         if customer_id:
             orders = Order.query.filter(Order.customer_id == customer_id)
             return [order.to_dict() for order in orders], 200
@@ -57,20 +56,19 @@ class Orders(Resource):
         
         if len(products) != len(product_ids):
             return {'error': 'One or more products not found'}, 404
-
+        
         order_total = sum([product.price for product in products])
 
         new_order = Order(
             order_date=datetime.now(timezone.utc),
             order_total=order_total,
-            customer_id=customer_id
+            customer_id=customer_id,
         )
         
         new_order.products = products
         
         db.session.add(new_order)
         db.session.commit()
-
         return new_order.to_dict(), 201
 
 class OrderByID(Resource):
@@ -113,7 +111,7 @@ class OrderByID(Resource):
 class CustomerSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
-        customer_id = session.get('customer_id')  # Retrieve customer ID from session or token
+        customer_id = session.get('customer_id')
         if not customer_id:
             return jsonify({"error": "User not logged in"}), 401
 
@@ -163,14 +161,10 @@ class SignUp(Resource):
 class CheckSession(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
-        print("Before session check, customer_id:", session.get('customer_id'))  # Debug print
-
         try:
-            customer_id = session['customer_id']  # This can raise KeyError if session doesn't have 'customer_id'
+            customer_id = session['customer_id']
         except KeyError:
             return jsonify({'message': '401: Not Authorized'}), 401
-
-        print("After session check, customer_id:", customer_id)  # Debug print
         customer = Customer.query.filter(Customer.id == customer_id).first()
         if customer:
             return jsonify(customer.to_dict()), 200
