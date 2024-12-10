@@ -1,6 +1,6 @@
 import React from "react";
 import "../../index.css"
-import OrderDetails from "../pages/OrderDetails";
+
 
 function Profile({orders, profileData}) {
 
@@ -32,8 +32,7 @@ function Profile({orders, profileData}) {
                                 <td>{order.order_date}</td>
                                 <td>${order.order_total.toFixed(2)}</td>
                                 <td>
-                                    {/* Render product details */}
-                                    {order.products && Array.isArray(order.products) ? (
+                                    {order.products ? (
                                         <ul>
                                             {order.products.map((product) => (
                                                 <li key={product.id}>

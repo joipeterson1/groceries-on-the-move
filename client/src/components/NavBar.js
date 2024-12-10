@@ -14,7 +14,8 @@ function NavBar({cartData, profileData, onLogout}){
         <nav>
           <div>
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/login">Login/Signup</NavLink>
+            {profileData ? null : 
+            <NavLink to="/login">Login/Signup</NavLink> }
             <NavLink cart={cart} to="/cart-page">Cart: {cartCount}</NavLink>
             <NavLink to="/profile">My Profile</NavLink>
             {profileData ? 
