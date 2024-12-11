@@ -72,7 +72,7 @@ function App() {
   return(
   <Router>
     <header>
-          <NavBar setProfileData={setProfileData} cartData={cartData} profileData={profileData} onLogout={onLogout}/>
+          <NavBar setProfileData={setProfileData} cartData={cartData} onLogout={onLogout}/>
     </header>
     <Route path="/" exact render={() => <Home products={products} AddToCart={AddToCart}/>} />
     <Route path="/login" render={() => <LoginSignUp profileData={profileData} setProfileData={setProfileData}/>} />

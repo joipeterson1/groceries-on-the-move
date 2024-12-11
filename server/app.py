@@ -1,16 +1,12 @@
-#!/usr/bin/env python3
 
-# Standard library imports
-
-# Remote library imports
 from flask import request, session, jsonify
 from flask_restful import Resource
 from datetime import datetime, timezone
 
-# Local imports
+
 from config import app, db, api
 from flask_cors import cross_origin
-from models import Customer, Product, Order
+from models import Customer, Product, Order, order_product_table, OrderProduct
 
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -23,23 +19,37 @@ class Products(Resource):
         products =[product.to_dict() for product in Product.query.all()]
         print(products)
         return products, 200
-
-class ProductByID(Resource):
-    @cross_origin(origins="http://localhost:3000")
-    def get(self, id):
-       product = Product.query.filter(Product.id == id).first()
-       product_dict = product.to_dict()
-       return jsonify(product_dict), 200
     
 class Orders(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
         customer_id = session.get('customer_id')
         if customer_id:
-            orders = Order.query.filter(Order.customer_id == customer_id)
-            return [order.to_dict() for order in orders], 200
+            orders = Order.query.filter(Order.customer_id == customer_id).all()
+            
+            orders_data = []
+            for order in orders:
+                order_data = order.to_dict() 
+                products_data = []
+                
+
+                for order_product in order.order_products:
+                    product = order_product.product
+                    product_data = {
+                        "id": product.id,
+                        "price": product.price,
+                        "product_img": product.product_img,
+                        "product_name": product.product_name,
+                        "quantity": order_product.quantity
+                    }
+                    products_data.append(product_data)
+                
+                order_data["products"] = products_data
+                orders_data.append(order_data)
+            
+            return orders_data, 200
+        
         return {'error': 'Unauthorized'}, 401
-    
 
     def post(self):
         customer_id = session.get('customer_id')
@@ -51,47 +61,54 @@ class Orders(Resource):
             return {'error': 'Customer not found'}, 404
         
         data = request.get_json()
-        product_ids = data.get('product_id', [])
-        products = Product.query.filter(Product.id.in_(product_ids)).all()
-        
-        if len(products) != len(product_ids):
-            return {'error': 'One or more products not found'}, 404
-        
-        order_total = sum([product.price for product in products])
+        print("Received order data:", data) 
+        all_products = data.get('products', [])
+
+        order_total = 0.0
+        order_product_entries = [] 
+
+        for item in all_products:
+            product_id = item['id']
+            quantity = item['quantity']
+            product = Product.query.get(product_id)
+            
+            if not product:
+                return {'error': f'Product with ID {product_id} not found'}, 404
+
+
+            order_total += product.price * quantity
+
+
+            order_product_entries.append({
+                'product_id': product.id,
+                'quantity': quantity
+            })
+
 
         new_order = Order(
             order_date=datetime.now(timezone.utc),
             order_total=order_total,
             customer_id=customer_id,
         )
-        
-        new_order.products = products
-        
         db.session.add(new_order)
         db.session.commit()
+
+        for entry in order_product_entries:
+
+            db.session.add(OrderProduct(
+            order_id=new_order.id,
+            product_id=entry['product_id'],
+            quantity=entry['quantity']
+            ))
+        
+        db.session.commit()
+
+
         return new_order.to_dict(), 201
 
+
 class OrderByID(Resource):
-    @cross_origin(origins="http://localhost:3000")
-    def patch(self, id):
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
-        order = Order.query.filter_by(id=id, customer_id=customer_id).first()
-        if order:
-                for attr in request.form:
-                    setattr(order, attr, request.form[attr])
-        
-                db.session.add(order)
-                db.session.commit() 
-
-                response_dict = order.to_dict()
-                response = response_dict, 200
-
-                return response
-        
-        return {'error': 'Order not found'}, 404
-    
+    @cross_origin(origins="http://localhost:3000") 
     def delete(self, id):
         customer_id = session.get('customer_id')
         if not customer_id:
@@ -120,7 +137,25 @@ class CustomerSession(Resource):
             return jsonify({"message": "No customer profile"}), 200
 
         return jsonify(customer.to_dict()), 200
+    
+    def patch(self, id):
+        customer_id = session.get('customer_id')
+        if not customer_id:
+            return {'error': 'Customer not logged in'}, 401
+        customer = Customer.query.filter(Customer.id == customer_id).first()
+        if customer:
+                for attr in request.form:
+                    setattr(customer, attr, request.form[attr])
+        
+                db.session.add(customer)
+                db.session.commit() 
 
+                response_dict = customer.to_dict()
+                response = response_dict, 200
+
+                return response
+        
+        return {'error': 'Customer not found'}, 404
     
 class ClearSession(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -197,7 +232,6 @@ class Logout(Resource):
     
 api.add_resource(Home, '/')
 api.add_resource(Products, '/products')
-api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(Orders, '/orders')
 api.add_resource(CustomerSession, '/customer')

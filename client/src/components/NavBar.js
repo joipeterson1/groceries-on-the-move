@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import "./NavBar.css";
 import React, {useEffect} from "react"
 
-function NavBar({cartData, profileData, setProfileData, onLogout}){
+function NavBar({cartData, setProfileData, onLogout}){
     const cart = cartData || []
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -26,21 +26,14 @@ function NavBar({cartData, profileData, setProfileData, onLogout}){
 
 
     return (
-      (profileData.length === 0) ?
         <nav>
           <div>
             <NavLink to="/">Home</NavLink>
             <NavLink to="/login">Login/Signup</NavLink>
             <NavLink cart={cart} to="/cart-page">Cart: {cartCount}</NavLink>
+            <NavLink to="/profile">My Profile</NavLink>
+            <button onClick={handleLogout}>Logout</button>
           </div>
-        </nav> : 
-        <nav>
-        <div>
-          <NavLink to="/">Home</NavLink>
-          <NavLink cart={cart} to="/cart-page">Cart: {cartCount}</NavLink>
-          <NavLink to="/profile">My Profile</NavLink>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
         </nav>
       );
 }

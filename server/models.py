@@ -10,6 +10,7 @@ order_product_table = db.Table(
     'order_products',
     db.Column('order_id', db.Integer, db.ForeignKey('orders.id'), primary_key=True),
     db.Column('product_id', db.Integer, db.ForeignKey('products.id'), primary_key=True),
+    db.Column('quantity', db.Integer, nullable=True, default=1), 
     db.UniqueConstraint('order_id', 'product_id', name='uix_order_product')
 )
 
@@ -84,7 +85,7 @@ class Customer(db.Model, SerializerMixin):
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
-    serialize_rules = ('-orders.product',)
+    serialize_rules = ('-orders.product', '-order_products.product', '-order_products.order')
 
     id = db.Column(db.Integer, primary_key=True)
     product_name = db.Column(db.String, nullable=False)
@@ -93,6 +94,7 @@ class Product(db.Model, SerializerMixin):
 
     orders = db.relationship('Order', secondary=order_product_table, back_populates='products')
 
+    order_products = db.relationship('OrderProduct', back_populates='product')
 
     @validates('product_name')
     def validate_product_name(self, key, product_name):
@@ -115,7 +117,7 @@ class Product(db.Model, SerializerMixin):
 class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
-    serialize_rules = ('-customer.orders', '-products.orders') 
+    serialize_rules = ('-customer.orders', '-products.orders', '-order_products.order', '-order_products.product') 
 
     id = db.Column(db.Integer, primary_key=True)
     order_date = db.Column(db.DateTime, nullable=False)
@@ -128,6 +130,19 @@ class Order(db.Model, SerializerMixin):
         secondary=order_product_table,
         back_populates='orders'
     )
+    order_products = db.relationship('OrderProduct', back_populates='order')
+
+class OrderProduct(db.Model, SerializerMixin):
+    __tablename__ = 'order_product_model'
+
+    serialize_rules = ('-order.order_products', '-product.order_products')
+
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+
+    order = db.relationship('Order', back_populates='order_products')
+    product = db.relationship('Product', back_populates='order_products')
 
 
 

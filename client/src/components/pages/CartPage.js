@@ -7,9 +7,8 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
   const totalAmount = cartData.reduce((total, cartItem) => {
     return total + (cartItem.price * cartItem.quantity);
   }, 0);
-  
-  console.log('cartData:', cartData);
 
+  console.log(cartData)
   useEffect(() => {
     fetch('/check-session')
       .then((r) => r.json())
@@ -31,11 +30,19 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
       customer_id: profileData.id,
       order_total: totalAmount,
       products: cartData.map(item => ({
-        product: item,
-        quantity: item.quantity,
-      })),
-      
+        id: item.id,
+        price: item.price,
+        product_img: item.product_img,
+        product_name: item.product_name,
+        quantity: item.quantity
+      }))
     };
+    const products = cartData.map(item => ({
+      product: item,
+      quantity: item.quantity}))
+      console.log(products)
+
+    console.log(orderData)
 
     fetch('/orders', {
       method: 'POST',

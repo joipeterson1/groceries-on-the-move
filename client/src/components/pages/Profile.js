@@ -28,6 +28,8 @@ function Profile({orders, setOrders, profileData, setProfileData}) {
         })
       }, [setOrders])
 
+      console.log(orders)
+
     return(
         <div>
         <h1>Welcome Back {profileData.name}!</h1>

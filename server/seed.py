@@ -4,9 +4,32 @@ import datetime
 from random import randint, choice as rc
 from faker import Faker
 from app import app
-from models import db, Customer, Product, Order, order_product_table
+from models import db, Customer, Product, Order, OrderProduct
 from sqlalchemy import text
 from werkzeug.security import generate_password_hash
+
+# Helper function to insert or update order product (insert or merge)
+def insert_order_product(order_id, product_id, quantity):
+    existing_order_product = db.session.query(OrderProduct).filter_by(
+        order_id=order_id, product_id=product_id).first()
+    
+    if existing_order_product:
+        # Update quantity if the product already exists in the order
+        existing_order_product.quantity += quantity
+    else:
+        # Otherwise, insert a new record
+        new_order_product = OrderProduct(order_id=order_id, product_id=product_id, quantity=quantity)
+        db.session.add(new_order_product)
+
+# Alternative helper function using db.session.merge
+def add_products_to_order(order, products_quantities):
+    for product, quantity in products_quantities:
+        # Merge logic will update the quantity if the product already exists in the order
+        db.session.merge(OrderProduct(
+            order_id=order.id,
+            product_id=product.id,
+            quantity=quantity
+        ))
 
 if __name__ == '__main__':
     fake = Faker()
@@ -100,19 +123,16 @@ if __name__ == '__main__':
         o3 = Order(order_date=datetime.datetime(2024, 11, 25),
         order_total=order_totals([p2, p6]), customer_id=c5.id)
 
-        # Add products to orders
-        o1.products.append(p1)
-        o1.products.append(p2)
-        o2.products.append(p1)
-        o2.products.append(p6)
-        o3.products.append(p2)
-        o3.products.append(p6)
+        db.session.add_all([o1, o2, o3])
+        db.session.commit()
 
-        # Add orders to session
-        db.session.add(o1)
-        db.session.add(o2)
-        db.session.add(o3)
+       # Insert products into orders using the helper function
+        add_products_to_order(o1, [(p1, 2), (p2, 3)])
+        add_products_to_order(o2, [(p1, 1), (p6, 2)])
+        add_products_to_order(o3, [(p2, 3), (p6, 1)])
 
+        # Commit the session after adding products
         db.session.commit()
 
         print("Complete!")
+
