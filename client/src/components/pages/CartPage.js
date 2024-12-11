@@ -42,8 +42,6 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
       quantity: item.quantity}))
       console.log(products)
 
-    console.log(orderData)
-
     fetch('/orders', {
       method: 'POST',
       body: JSON.stringify(orderData),

@@ -1,8 +1,9 @@
 import React, {useEffect} from "react";
 import "../../index.css"
+import OrderList from "../OrderList"
 
 
-function Profile({orders, setOrders, profileData, setProfileData}) {
+function Profile({onEdit, orders, setOrders, profileData, setProfileData, onDelete}) {
 
     useEffect(() => {
         fetch('/check-session')
@@ -28,7 +29,6 @@ function Profile({orders, setOrders, profileData, setProfileData}) {
         })
       }, [setOrders])
 
-      console.log(orders)
 
     return(
         <div>
@@ -41,44 +41,7 @@ function Profile({orders, setOrders, profileData, setProfileData}) {
         <p>Email: {profileData.email}</p>
         <p>Phone Number: {profileData.phone_number}</p>
         <p>Address: {profileData.address}</p>
-        <table style={{padding: "15px"}}>
-            <thead>
-                <tr>
-                    <th>Order Number</th>
-                    <th>Order Date</th>
-                    <th>Order Total</th>
-                    <th>Products</th>
-                </tr>
-            </thead>
-            <tbody>
-                    {orders && orders.length > 0 ? (
-                        orders.map((order) => (
-                            <tr key={order.id}>
-                                <td>{order.id}</td>
-                                <td>{order.order_date}</td>
-                                <td>${order.order_total.toFixed(2)}</td>
-                                <td>
-                                    {order.products ? (
-                                        <ul>
-                                            {order.products.map((product) => (
-                                                <li key={product.id}>
-                                                    <strong>{product.product_name}</strong> - ${product.price} x {product.quantity}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p>No products available</p>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4">No Orders Yet</td>
-                        </tr>
-                    )}
-                </tbody>
-        </table>
+        <OrderList orders={orders} setOrders={setOrders} onDelete={onDelete} onEdit={onEdit}/>
         </div>
     )
 }

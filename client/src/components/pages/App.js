@@ -69,6 +69,22 @@ function App() {
     setProfileData({})
   }
 
+  function onDelete(deletedOrder){
+    const updatedOrders = orders.filter((order)=> order.id !== deletedOrder.id)
+    setOrders(updatedOrders)
+  }
+
+  function onEdit(updatedOrder){
+    const newOrder = orders.map((order)=> {
+      if (order.id === updatedOrder.id) {
+        return updatedOrder
+      } else {
+        return order
+      }
+    })
+    setOrders(newOrder)
+  }
+
   return(
   <Router>
     <header>
@@ -78,7 +94,8 @@ function App() {
     <Route path="/login" render={() => <LoginSignUp profileData={profileData} setProfileData={setProfileData}/>} />
     <Route path="/cart-page" render={() => <CartPage cartData={cartData} setCartData={setCartData} 
     profileData={profileData} setProfileData={setProfileData} orders={orders} setOrders={setOrders}/>} />
-    <Route path="/profile" render={() => <Profile setOrders={setOrders} orders={orders} profileData={profileData} setProfileData={setProfileData}/>} />
+    <Route path="/profile" render={() => <Profile setOrders={setOrders} orders={orders} 
+    profileData={profileData} setProfileData={setProfileData} onDelete={onDelete} onEdit={onEdit}/>} />
   </Router>
   )
 }

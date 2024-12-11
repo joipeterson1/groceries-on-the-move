@@ -123,6 +123,52 @@ class OrderByID(Resource):
             return {'message': 'Order successfully deleted'}, 200
         
         return {'error': 'Order not found'}, 404
+
+    def patch(self, id):
+        # Get the customer ID from the session
+        customer_id = session.get('customer_id')
+        if not customer_id:
+            return {'error': 'Customer not logged in'}, 401
+
+        # Fetch the order by ID for the customer
+        order = Order.query.filter_by(id=id, customer_id=customer_id).first()
+
+        if not order:
+            return {'error': 'Order not found'}, 404
+
+        # Get the updated data from the request body
+        data = request.get_json()
+
+        # Update the order fields based on the provided data
+        if 'order_date' in data:
+            order.order_date = data['order_date']
+        
+        if 'order_total' in data:
+            order.order_total = data['order_total']
+
+        # Handle updating the products associated with the order
+        if 'products' in data:
+            # Delete the existing OrderProduct associations
+            for order_product in order.order_products:
+                db.session.delete(order_product)
+
+            # Add the new OrderProduct associations based on the provided products
+            for item in data['products']:
+                product = Product.query.get(item['id'])
+                if product:
+                    order_product = OrderProduct(
+                        order_id=order.id,
+                        product_id=product.id,
+                        quantity=item['quantity']
+                    )
+                    db.session.add(order_product)
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        # Return the updated order as a response
+        return order.to_dict(), 200
+
     
 
 class CustomerSession(Resource):
