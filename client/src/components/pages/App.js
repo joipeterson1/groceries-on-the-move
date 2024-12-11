@@ -65,9 +65,40 @@ function App() {
     });
   }
 
-  function onLogout(){
-    setProfileData({})
-  }
+  const fetchOrders = () => {
+    fetch("/orders", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setOrders(data); 
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+      });
+  };
+
+  const onLogout = () => {
+    fetch("/check-session", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setProfileData(data);
+        fetchOrders()
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+      });
+  };
 
   function onDelete(deletedOrder){
     const updatedOrders = orders.filter((order)=> order.id !== deletedOrder.id)
@@ -95,7 +126,7 @@ function App() {
     <Route path="/cart-page" render={() => <CartPage cartData={cartData} setCartData={setCartData} 
     profileData={profileData} setProfileData={setProfileData} orders={orders} setOrders={setOrders}/>} />
     <Route path="/profile" render={() => <Profile setOrders={setOrders} orders={orders} 
-    profileData={profileData} setProfileData={setProfileData} onDelete={onDelete} onEdit={onEdit}/>} />
+    profileData={profileData} setProfileData={setProfileData} onDelete={onDelete} onEdit={onEdit} fetchOrders={fetchOrders}/>} />
   </Router>
   )
 }

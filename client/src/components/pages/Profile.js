@@ -3,7 +3,7 @@ import "../../index.css"
 import OrderList from "../OrderList"
 
 
-function Profile({onEdit, orders, setOrders, profileData, setProfileData, onDelete}) {
+function Profile({fetchOrders, onEdit, orders, setOrders, profileData, setProfileData, onDelete}) {
 
     useEffect(() => {
         fetch('/check-session')
@@ -41,7 +41,7 @@ function Profile({onEdit, orders, setOrders, profileData, setProfileData, onDele
         <p>Email: {profileData.email}</p>
         <p>Phone Number: {profileData.phone_number}</p>
         <p>Address: {profileData.address}</p>
-        <OrderList orders={orders} setOrders={setOrders} onDelete={onDelete} onEdit={onEdit}/>
+        <OrderList fetchOrders={fetchOrders} setProfileData={setProfileData} orders={orders} setOrders={setOrders} onDelete={onDelete} onEdit={onEdit}/>
         </div>
     )
 }

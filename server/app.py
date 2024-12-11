@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from config import app, db, api
 from flask_cors import cross_origin
-from models import Customer, Product, Order, order_product_table, OrderProduct
+from models import Customer, Product, Order, OrderProduct
 
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -32,7 +32,6 @@ class Orders(Resource):
                 order_data = order.to_dict() 
                 products_data = []
                 
-
                 for order_product in order.order_products:
                     product = order_product.product
                     product_data = {
@@ -75,16 +74,12 @@ class Orders(Resource):
             if not product:
                 return {'error': f'Product with ID {product_id} not found'}, 404
 
-
             order_total += product.price * quantity
-
 
             order_product_entries.append({
                 'product_id': product.id,
                 'quantity': quantity
             })
-
-
         new_order = Order(
             order_date=datetime.now(timezone.utc),
             order_total=order_total,
@@ -102,7 +97,6 @@ class Orders(Resource):
             ))
         
         db.session.commit()
-
 
         return new_order.to_dict(), 201
 
@@ -135,20 +129,16 @@ class OrderByID(Resource):
 
         data = request.get_json()
 
-        # Update the order's order_date if provided
         if 'order_date' in data:
             order.order_date = data['order_date']
     
-        # Reset order_total to 0 and start recalculating it based on the updated products
         order.order_total = 0.0
 
-        # Handle updating the products associated with the order
         if 'products' in data:
-            # Delete the existing OrderProduct associations first
+
             for order_product in order.order_products:
                 db.session.delete(order_product)
 
-            # Re-add the new products and recalculate the order_total
             for item in data['products']:
                 if 'id' not in item or 'quantity' not in item:
                     return {'error': 'Missing required fields in product data (id, quantity)'}, 400
@@ -157,11 +147,10 @@ class OrderByID(Resource):
                 if not product:
                     return {'error': f'Product with ID {item["id"]} not found'}, 404
 
-                # Calculate the product price and add to the order total
+
                 product_total = product.price * item['quantity']
                 order.order_total += product_total
 
-                # Add the new OrderProduct record
                 order_product = OrderProduct(
                     order_id=order.id,
                     product_id=product.id,
@@ -169,46 +158,9 @@ class OrderByID(Resource):
                 )
                 db.session.add(order_product)
 
-        # Commit the changes to the database
         db.session.commit()
 
-        # Return the updated order as a response
         return order.to_dict(), 200
-
-
-    
-
-class CustomerSession(Resource):
-    @cross_origin(origins="http://localhost:3000")
-    def get(self):
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            return jsonify({"error": "User not logged in"}), 401
-
-        customer = Customer.query.filter(Customer.id == customer_id).first()
-        if not customer:
-            return jsonify({"message": "No customer profile"}), 200
-
-        return jsonify(customer.to_dict()), 200
-    
-    def patch(self, id):
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            return {'error': 'Customer not logged in'}, 401
-        customer = Customer.query.filter(Customer.id == customer_id).first()
-        if customer:
-                for attr in request.form:
-                    setattr(customer, attr, request.form[attr])
-        
-                db.session.add(customer)
-                db.session.commit() 
-
-                response_dict = customer.to_dict()
-                response = response_dict, 200
-
-                return response
-        
-        return {'error': 'Customer not found'}, 404
     
 class ClearSession(Resource):
     @cross_origin(origins="http://localhost:3000")
@@ -258,8 +210,6 @@ class CheckSession(Resource):
             return jsonify(customer.to_dict()), 200
         return jsonify({'message': '401: Not Authorized'}), 401
 
-
-
 class Login(Resource):
     @cross_origin(origins="http://localhost:3000")
     def post(self):
@@ -275,8 +225,6 @@ class Login(Resource):
             return jsonify(customer.to_dict()), 200
         return jsonify({'error': 'Invalid username or password'}), 401
 
-        
-
 class Logout(Resource):
     @cross_origin(origins="http://localhost:3000")
     def delete(self):
@@ -287,7 +235,6 @@ api.add_resource(Home, '/')
 api.add_resource(Products, '/products')
 api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(Orders, '/orders')
-api.add_resource(CustomerSession, '/customer')
 api.add_resource(ClearSession, '/clear', endpoint="clear")
 api.add_resource(SignUp, '/signup', endpoint="signup")
 api.add_resource(CheckSession, '/check-session', endpoint="check-session")

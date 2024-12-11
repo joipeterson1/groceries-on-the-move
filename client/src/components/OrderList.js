@@ -1,81 +1,96 @@
-import React, {useState} from "react";
-import "../../src/index.css"
-import {useFormik} from "formik"
-import * as yup from "yup"
+import React, { useState, useEffect } from "react";
+import "../../src/index.css";
+import { useFormik } from "formik";
+import * as yup from "yup";
 
+function OrderList({ fetchOrders, setProfileData, onEdit, orders, onDelete }) {
+    const [editingOrderId, setEditingOrderId] = useState(null);
 
-function OrderList({ onEdit, orders, setOrders, onDelete}) {
-    const [editingOrderId, setEditingOrderId] = useState(null); // Track which order is being edited
+    useEffect(() => {
+        fetch('/check-session')
+          .then((r) => r.json())
+          .then((customer) => 
+              setProfileData(customer)
+          )
+          .catch((error) => {
+            console.error('Error fetching products:', error);
+            setProfileData({})
+          });
+      }, []);
 
-  // Toggle the editing state for a specific order
-  function EditOrder(orderId) {
-    setEditingOrderId(editingOrderId === orderId ? null : orderId);
-  }
+    function EditOrder(orderId) {
+        setEditingOrderId(orderId === editingOrderId ? null : orderId);
+
+        const orderToEdit = orders.find((order) => order.id === orderId);
+        if (orderToEdit && orderToEdit.products && orderToEdit.products.length > 0) {
+            const product = orderToEdit.products[0];
+            productFormik.setValues({
+                product_name: product.product_name,
+                quantity: product.quantity,
+                id: product.id,
+            });
+        }
+    }
 
     function DeleteOrder(orderId) {
-        fetch(`http://localhost:5555/orders/${orderId}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",  // Ensure the content type is set
-          },
-          credentials: "include", // Include credentials to send cookies/session
+        fetch(`/orders/${orderId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                console.log(data);
+                fetchOrders()
+                onDelete(orderId);
             })
-          .then((r) => r.json())
-          .then((data) => {
-            console.log(data)
-            // Call the onDelete callback to remove the deleted order from the UI
-            onDelete(orderId);
-          })
-          .catch((error) => {
-            console.error("Error deleting order:", error);
-            alert("Failed to delete the order.");
-          });
-      }
+            .catch((error) => {
+                console.error("Error deleting order:", error);
+                alert("Failed to delete the order.");
+            });
+    }
 
     const productFormSchema = yup.object().shape({
         product_name: yup.string().required("Must enter a product name"),
-        quantity: yup.number().required("Must enter a quantity").positive().integer(),    
-    })
+        quantity: yup.number().required("Must enter a quantity").positive().integer(),
+    });
 
     const productFormik = useFormik({
         initialValues: {
             product_name: "",
-            quantity: "",
+            quantity: 1,
         },
         validationSchema: productFormSchema,
         onSubmit: (values) => {
-            // Send a PATCH request to update the order
             const updatedOrder = {
-              products: [
-                {
-                  id: values.id,
-                  quantity: values.quantity,
-                },
-              ],
+                products: [
+                    {
+                        id: values.id,
+                        quantity: values.quantity,
+                    },
+                ],
             };
-            fetch(`http://localhost:5555/orders/${editingOrderId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+            fetch(`/orders/${editingOrderId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedOrder),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Updated order:", data);
+                    fetchOrders();
+                    setEditingOrderId(null);
+                    onEdit(data)
+                })
+                .catch((error) => {
+                    console.error("Error updating order:", error);
+                });
         },
-        body: JSON.stringify(updatedOrder),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Updated order:", data);
-          setOrders((prevOrders) => {
-            // Update the orders list with the updated order data
-            return prevOrders.map((order) =>
-              order.id === data.id ? data : order
-            );
-          });
-          setEditingOrderId(null); // Stop editing after successful update
-        })
-        .catch((error) => {
-          console.error("Error updating order:", error);
-        });
-            },
-        });
+    });
 
     const updateForm = (
         <div>
@@ -148,11 +163,9 @@ function OrderList({ onEdit, orders, setOrders, onDelete}) {
                       </td>
                     </tr>
     
-                    {/* Display the update form in a new row below the order */}
                     {editingOrderId === order.id && (
                       <tr>
                         <td colSpan="6">
-                          {/* You can place the form in a <td> to ensure proper table structure */}
                           {updateForm}
                         </td>
                       </tr>

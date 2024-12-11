@@ -1,5 +1,5 @@
 import {React, useState, useEffect} from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 function CartPage({ profileData, setProfileData, cartData, setCartData, orders, setOrders }) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
@@ -7,6 +7,7 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
   const totalAmount = cartData.reduce((total, cartItem) => {
     return total + (cartItem.price * cartItem.quantity);
   }, 0);
+  const history = useHistory()
 
   console.log(cartData)
   useEffect(() => {
@@ -55,6 +56,8 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
           console.log(data)
           setOrderConfirmed(true);
           handleOrder(data)
+          setCartData([])
+          history.push("./profile")
         }
       })
       .catch((err) => {

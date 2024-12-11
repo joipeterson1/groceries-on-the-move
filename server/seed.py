@@ -8,23 +8,22 @@ from models import db, Customer, Product, Order, OrderProduct
 from sqlalchemy import text
 from werkzeug.security import generate_password_hash
 
-# Helper function to insert or update order product (insert or merge)
+
 def insert_order_product(order_id, product_id, quantity):
     existing_order_product = db.session.query(OrderProduct).filter_by(
         order_id=order_id, product_id=product_id).first()
     
     if existing_order_product:
-        # Update quantity if the product already exists in the order
+
         existing_order_product.quantity += quantity
     else:
-        # Otherwise, insert a new record
+
         new_order_product = OrderProduct(order_id=order_id, product_id=product_id, quantity=quantity)
         db.session.add(new_order_product)
 
-# Alternative helper function using db.session.merge
+
 def add_products_to_order(order, products_quantities):
     for product, quantity in products_quantities:
-        # Merge logic will update the quantity if the product already exists in the order
         db.session.merge(OrderProduct(
             order_id=order.id,
             product_id=product.id,
