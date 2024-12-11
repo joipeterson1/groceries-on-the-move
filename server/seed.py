@@ -42,6 +42,7 @@ if __name__ == '__main__':
         Customer.query.delete()
         Product.query.delete()
         Order.query.delete()
+        OrderProduct.query.delete()
         db.session.commit()
 
         print("Creating Customers...")

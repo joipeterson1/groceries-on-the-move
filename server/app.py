@@ -125,49 +125,56 @@ class OrderByID(Resource):
         return {'error': 'Order not found'}, 404
 
     def patch(self, id):
-        # Get the customer ID from the session
         customer_id = session.get('customer_id')
         if not customer_id:
             return {'error': 'Customer not logged in'}, 401
-
-        # Fetch the order by ID for the customer
+    
         order = Order.query.filter_by(id=id, customer_id=customer_id).first()
-
         if not order:
             return {'error': 'Order not found'}, 404
 
-        # Get the updated data from the request body
         data = request.get_json()
 
-        # Update the order fields based on the provided data
+        # Update the order's order_date if provided
         if 'order_date' in data:
             order.order_date = data['order_date']
-        
-        if 'order_total' in data:
-            order.order_total = data['order_total']
+    
+        # Reset order_total to 0 and start recalculating it based on the updated products
+        order.order_total = 0.0
 
         # Handle updating the products associated with the order
         if 'products' in data:
-            # Delete the existing OrderProduct associations
+            # Delete the existing OrderProduct associations first
             for order_product in order.order_products:
                 db.session.delete(order_product)
 
-            # Add the new OrderProduct associations based on the provided products
+            # Re-add the new products and recalculate the order_total
             for item in data['products']:
+                if 'id' not in item or 'quantity' not in item:
+                    return {'error': 'Missing required fields in product data (id, quantity)'}, 400
+            
                 product = Product.query.get(item['id'])
-                if product:
-                    order_product = OrderProduct(
-                        order_id=order.id,
-                        product_id=product.id,
-                        quantity=item['quantity']
-                    )
-                    db.session.add(order_product)
+                if not product:
+                    return {'error': f'Product with ID {item["id"]} not found'}, 404
+
+                # Calculate the product price and add to the order total
+                product_total = product.price * item['quantity']
+                order.order_total += product_total
+
+                # Add the new OrderProduct record
+                order_product = OrderProduct(
+                    order_id=order.id,
+                    product_id=product.id,
+                    quantity=item['quantity']
+                )
+                db.session.add(order_product)
 
         # Commit the changes to the database
         db.session.commit()
 
         # Return the updated order as a response
         return order.to_dict(), 200
+
 
     
 

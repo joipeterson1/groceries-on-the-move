@@ -130,7 +130,7 @@ class Order(db.Model, SerializerMixin):
         secondary=order_product_table,
         back_populates='orders'
     )
-    order_products = db.relationship('OrderProduct', back_populates='order')
+    order_products = db.relationship('OrderProduct', back_populates='order', cascade="all, delete-orphan")
 
 class OrderProduct(db.Model, SerializerMixin):
     __tablename__ = 'order_product_model'
