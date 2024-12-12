@@ -12,17 +12,34 @@ function App() {
   const [profileData, setProfileData] = useState({});
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    fetch('/check-session')
+  // useEffect(() => {
+  //   fetch('/check-session')
+  //     .then((r) => r.json())
+  //     .then((customer) => 
+  //         setProfileData(customer)
+  //     )
+  //     .catch((error) => {
+  //       console.error('Error fetching products:', error);
+  //       setProfileData({})
+  //     });
+  // }, []);
+
+  const sessionCheck = () => {
+    fetch("/check-session", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    })
       .then((r) => r.json())
-      .then((customer) => 
-          setProfileData(customer)
-      )
+      .then((data) => {
+        setProfileData(data);
+      })
       .catch((error) => {
-        console.error('Error fetching products:', error);
-        setProfileData({})
+        console.error("Error fetching orders:", error);
       });
-  }, []);
+  };
 
   useEffect(() => {
     fetch('/products')
@@ -37,19 +54,20 @@ function App() {
   }, []);
 
 
-  useEffect(()=> {
-    fetch('/orders')
-    .then((r)=> r.json())
-    .then((orders)=> 
-        setOrders(orders)
-    )
-    .catch((error) => {
-      console.error('Error fetching orders:', error);
-      setOrders([]);
-    })
-  }, [])
+  // useEffect(()=> {
+  //   fetch('/orders')
+  //   .then((r)=> r.json())
+  //   .then((orders)=> 
+  //       setOrders(orders)
+  //   )
+  //   .catch((error) => {
+  //     console.error('Error fetching orders:', error);
+  //     setOrders([]);
+  //   })
+  // }, [])
 
   const AddToCart = (product) => {
+    sessionCheck()
     setCartData((prevCartData) => {
       const productExists = prevCartData.find(item => item.id === product.id);
 
@@ -119,7 +137,7 @@ function App() {
   return(
   <Router>
     <header>
-          <NavBar setProfileData={setProfileData} cartData={cartData} onLogout={onLogout}/>
+          <NavBar sessionCheck={sessionCheck} fetchOrders={fetchOrders} setProfileData={setProfileData} cartData={cartData} onLogout={onLogout}/>
     </header>
     <Route path="/" exact render={() => <Home products={products} AddToCart={AddToCart}/>} />
     <Route path="/login" render={() => <LoginSignUp profileData={profileData} setProfileData={setProfileData}/>} />

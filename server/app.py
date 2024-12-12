@@ -9,6 +9,7 @@ from config import app, db, api
 from flask_cors import cross_origin
 from models import Customer, Product, Order, OrderProduct
 
+
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):

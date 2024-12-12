@@ -3,21 +3,9 @@ import {useFormik} from "formik"
 import * as yup from "yup"
 import {useHistory} from "react-router-dom"
 
-function LoginSignUp({setProfileData, profileData}) {
+function LoginSignUp({setProfileData}) {
     const [refreshPage, setRefreshPage] = useState(false)
     const history = useHistory()
-
-    useEffect(() => {
-        fetch('/check-session')
-          .then((r) => r.json())
-          .then((customer) => 
-              setProfileData(customer)
-          )
-          .catch((error) => {
-            console.error('Error fetching products:', error);
-            setProfileData({})
-          });
-      }, [setProfileData]);
 
     const loginFormSchema = yup.object().shape({
         username: yup.string().required("Must enter a username"),
