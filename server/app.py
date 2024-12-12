@@ -187,10 +187,11 @@ def check_if_logged_in():
         'login',
         'check-session',
         'products',
-        'home'
+        'home', 
+        'favicon.ico' 
     ]
 
-    if request.endpoint == 'favicon' or request.endpoint in open_access_list:
+    if request.endpoint == 'favicon.ico' or request.endpoint in open_access_list:
         return
 
     if not session.get('customer_id'):
