@@ -16,7 +16,7 @@ function OrderList({ fetchOrders, setProfileData, onEdit, orders, onDelete }) {
             console.error('Error fetching products:', error);
             setProfileData({})
           });
-      }, []);
+      }, [setProfileData]);
 
     function EditOrder(orderId) {
         setEditingOrderId(orderId === editingOrderId ? null : orderId);
