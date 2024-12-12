@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import request, session, jsonify
+from flask import request, session, jsonify, render_template
 from flask_restful import Resource
 from datetime import datetime, timezone
 
@@ -9,6 +9,10 @@ from config import app, db, api
 from flask_cors import cross_origin
 from models import Customer, Product, Order, OrderProduct
 
+@app.route('/')
+@app.route('/<int:id>')
+def index(id=0):
+    return render_template("index.html")
 
 class Home(Resource):
     @cross_origin(origins="http://localhost:3000")
