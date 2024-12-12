@@ -1,22 +1,10 @@
 import { NavLink } from "react-router-dom";
 import "./NavBar.css";
-import React, {useEffect} from "react"
+import React from "react"
 
-function NavBar({sessionCheck, fetchOrders, cartData, setProfileData, onLogout}){
+function NavBar({fetchOrders, cartData, onLogout}){
     const cart = cartData || []
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-    // useEffect(() => {
-    //   fetch('/check-session')
-    //     .then((r) => r.json())
-    //     .then((customer) => 
-    //         setProfileData(customer)
-    //     )
-    //     .catch((error) => {
-    //       console.error('Error fetching products:', error);
-    //       setProfileData({})
-    //     });
-    // }, [setProfileData]);
 
     function handleLogout(){
       fetch("/logout", {
