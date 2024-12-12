@@ -19,7 +19,6 @@ class Products(Resource):
     @cross_origin(origins="http://localhost:3000")
     def get(self):
         products =[product.to_dict() for product in Product.query.all()]
-        print(products)
         return products, 200
     
 class Orders(Resource):
@@ -177,11 +176,16 @@ def check_if_logged_in():
         'signup',
         'login',
         'check-session',
-        'products'
+        'products',
+        'home'
     ]
 
-    if (request.endpoint) not in open_access_list and (not session.get('customer_id')):
+    if request.endpoint == 'favicon' or request.endpoint in open_access_list:
+        return
+
+    if not session.get('customer_id'):
         return {'error': '401 Unauthorized'}, 401
+
 
 class SignUp(Resource):
     @cross_origin(origins="http://localhost:3000")
