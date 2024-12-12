@@ -38,10 +38,10 @@ if __name__ == '__main__':
         db.session.execute(text('DELETE FROM order_products'))
         db.session.commit()
 
-        Customer.query.delete()
+        OrderProduct.query.delete()
         Product.query.delete()
         Order.query.delete()
-        OrderProduct.query.delete()
+        Customer.query.delete()
         db.session.commit()
 
         print("Creating Customers...")

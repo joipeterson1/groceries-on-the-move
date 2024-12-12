@@ -1,4 +1,5 @@
-
+from dotenv import load_dotenv
+load_dotenv()
 from flask import request, session, jsonify
 from flask_restful import Resource
 from datetime import datetime, timezone

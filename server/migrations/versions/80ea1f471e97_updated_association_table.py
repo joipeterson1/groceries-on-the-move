@@ -22,10 +22,10 @@ def upgrade():
         batch_op.add_column(sa.Column('id', sa.Integer(), nullable=False))
         batch_op.alter_column('order_id',
                existing_type=sa.INTEGER(),
-               nullable=True)
+               nullable=False)
         batch_op.alter_column('product_id',
                existing_type=sa.INTEGER(),
-               nullable=True)
+               nullable=False)
 
     # ### end Alembic commands ###
 
