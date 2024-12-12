@@ -33,6 +33,6 @@ db.init_app(app)
 api = Api(app)
 
 
-CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=["GET", "POST", "PATCH", "DELETE"])
+CORS(app, origins=["http://localhost:3000", "https://groceries-on-the-move.onrender.com"], supports_credentials=True, methods=["GET", "POST", "PATCH", "DELETE"])
 
 bcrypt = Bcrypt(app)
