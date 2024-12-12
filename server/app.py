@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import request, session, jsonify
+from flask import request, session, jsonify, send_from_directory
 from flask_restful import Resource
 from datetime import datetime, timezone
 
@@ -8,6 +8,16 @@ from datetime import datetime, timezone
 from config import app, db, api
 from flask_cors import cross_origin
 from models import Customer, Product, Order, OrderProduct
+
+import os
+
+@app.route('/')
+def serve_react_app():
+    return send_from_directory(os.path.join(app.root_path, 'build'), 'index.html')
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.path.join(app.root_path, 'build', 'static'), path)
 
 
 class Home(Resource):
