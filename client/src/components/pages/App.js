@@ -12,7 +12,6 @@ function App() {
   const [profileData, setProfileData] = useState({});
   const [orders, setOrders] = useState([]);
 
-
   const sessionCheck = () => {
     fetch("/check-session", {
       method: "GET",

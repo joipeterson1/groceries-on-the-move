@@ -38,10 +38,6 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
         quantity: item.quantity
       }))
     };
-    const products = cartData.map(item => ({
-      product: item,
-      quantity: item.quantity}))
-      console.log(products)
 
     fetch('/orders', {
       method: 'POST',
