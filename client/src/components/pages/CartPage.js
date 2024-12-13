@@ -20,7 +20,7 @@ function CartPage({ profileData, setProfileData, cartData, setCartData, orders, 
         console.error('Error fetching products:', error);
         setProfileData({})
       });
-  }, [setProfileData]);
+  }, []);
 
   function NewOrder() {
     if (!profileData) {

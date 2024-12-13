@@ -4,7 +4,7 @@ import OrderList from "../OrderList"
 
 
 function Profile({fetchOrders, onEdit, orders, setOrders, profileData, setProfileData, onDelete}) {
-
+console.log(orders)
     useEffect(() => {
         fetch('/check-session')
           .then((r) => r.json())
@@ -15,7 +15,7 @@ function Profile({fetchOrders, onEdit, orders, setOrders, profileData, setProfil
             console.error('Error fetching products:', error);
             setProfileData({})
           });
-      }, [setProfileData]);
+      }, []);
 
       useEffect(()=> {
         fetch('/orders')
@@ -27,7 +27,7 @@ function Profile({fetchOrders, onEdit, orders, setOrders, profileData, setProfil
           console.error('Error fetching orders:', error);
           setOrders([]);
         })
-      }, [setOrders])
+      }, [])
 
 
     return(
